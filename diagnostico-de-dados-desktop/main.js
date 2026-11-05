@@ -1,5 +1,5 @@
 'use strict';
-const { app, BrowserWindow, shell, Menu } = require('electron');
+const { app, BrowserWindow, shell, Menu, ipcMain, dialog } = require('electron');
 const path = require('path');
 
 function createWindow() {
@@ -12,6 +12,7 @@ function createWindow() {
     title: 'Nexora Insight',
     autoHideMenuBar: true,
     webPreferences: {
+      preload: path.join(__dirname,'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -29,6 +30,17 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  ipcMain.handle('nexora:export-pdf',async(event)=>{
+    const win=BrowserWindow.fromWebContents(event.sender);
+    if(!win||event.sender.getURL()!==require('url').pathToFileURL(path.join(__dirname,'app','index.html')).href)return {error:'Origem de exportação inválida.'};
+    try{
+      const selection=await dialog.showSaveDialog(win,{title:'Salvar relatório Nexora Insight',defaultPath:'Nexora Insight.pdf',filters:[{name:'PDF',extensions:['pdf']}]});
+      if(selection.canceled||!selection.filePath)return {canceled:true};
+      const pdf=await event.sender.printToPDF({printBackground:true,preferCSSPageSize:true});
+      await require('fs/promises').writeFile(selection.filePath,pdf);
+      return {canceled:false};
+    }catch{return {error:'Não foi possível salvar o PDF. Confira o destino e as permissões.'}}
+  });
   // No Windows e no Linux o menu fica oculto. No macOS ele é mantido (atalhos de copiar e colar dependem dele).
   if (process.platform !== 'darwin') Menu.setApplicationMenu(null);
   createWindow();

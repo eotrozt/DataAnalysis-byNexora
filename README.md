@@ -1,8 +1,8 @@
-# DataAnalysis-byNexora
+# Nexora Insight
 
-## Nexora Insight
+Análise local de planilhas com diagnóstico de qualidade, correções por confirmação, histórico, gráficos e relatórios PDF/Excel.
 
-O aplicativo enviado está em `diagnostico-de-dados-desktop/`.
+## Executar
 
 ```sh
 cd diagnostico-de-dados-desktop
@@ -10,12 +10,16 @@ npm ci
 npm start
 ```
 
-A tela inicial permite **Entrar em demonstração**, sem credenciais. Consulte `diagnostico-de-dados-desktop/LEIA-ME.md` para uso, testes e distribuição.
+Acesso direto, sem login. O original é preservado; duplicatas e atípicos não são excluídos automaticamente. Leia o [guia de uso, limites e testes](diagnostico-de-dados-desktop/LEIA-ME.md).
 
-## Download e visualização
+## Download
 
-[Baixar projeto ZIP](downloads/nexora-insight.zip) — abra o arquivo no GitHub e clique em **Download raw**. Extraia o ZIP e abra `app/index.html` para testar a interface.
+[Baixar projeto ZIP](downloads/nexora-insight.zip) — abra o arquivo e clique em **Download raw**. O ZIP inclui os recursos locais de fonte e Excel. Para a análise, execute `npm ci && npm start` ou sirva `app/` por um servidor local, conforme o guia.
 
-### Tela de entrada
+## Visão Geral
 
-![Tela de entrada Nexora Insight](docs/login.png)
+![Dashboard Nexora Insight](docs/dashboard.png)
+
+O exemplo exibido é sintético e não representa uma empresa.
+
+[Relatório PDF de exemplo](docs/relatorio-exemplo.pdf) · [Alterações, testes e limitações](docs/VALIDACAO.md)

@@ -1,109 +1,89 @@
-# Nexora Insight — demonstração desktop
+# Nexora Insight 1.1
 
-Interface atualizada com a identidade Nexora: grafite, ciano, superfícies escuras e navegação lateral. A visão executiva reúne a base de cálculo, indicadores, distribuição, série temporal (quando disponível) e achados do motor original.
+Aplicativo desktop de análise local de CSV, TSV, TXT e Excel. A fonte Manrope, o leitor de Excel e todo o processamento ficam no dispositivo. Não há tela de login nem serviços externos de análise.
 
-## Entrar e testar
+## Executar
 
-A tela inicial tem o botão **Entrar em demonstração**. Não exige conta ou senha e não implementa autenticação. **Sair da demonstração** reinicia a interface e descarta os dados da sessão em memória.
-
-O aplicativo começa sem dados. Importe CSV, TSV, TXT ou Excel, cole uma tabela ou escolha **Explorar exemplo sintético**. O exemplo continua identificado como fictício. Após a importação, as configurações recolhem para dar espaço aos resultados; use **Importar base** ou **Importação e configurações** para reabri-las.
-
-## Desenvolvimento
+Node.js 20 ou mais recente:
 
 ```sh
 npm ci
 npm start
 ```
 
-Para visualizar apenas a interface, após `npm ci`, abra `app/index.html` no navegador. A fonte e o leitor de Excel são copiados localmente pelo postinstall. Não são necessários serviços externos.
+Para desenvolvimento no navegador, após `npm ci`, sirva a pasta `app/`:
 
-## Testes de interface
+```sh
+python3 -m http.server 4173 --directory app --bind 127.0.0.1
+```
+
+Use o servidor local para permitir os Web Workers; abrir o HTML diretamente por `file://` pode ser bloqueado pelo navegador. O Electron abre os arquivos locais normalmente.
+
+## Fluxo de análise
+
+1. **Importar base**: escolha um arquivo ou cole uma tabela com cabeçalhos. Confira os primeiros dez registros e confirme a importação. Cancelar mantém a análise anterior.
+2. **Visão Geral**: confira os indicadores, a base de cálculo, as distribuições, tendências disponíveis e descobertas com evidências e limitações.
+3. **Qualidade dos Dados**: investigue ausências, duplicatas, formatos mistos, datas inválidas, variações de escrita e atípicos. Um alerta não comprova erro.
+4. Em **Importação e configurações**, selecione correções. Cada correção mostra a comparação antes/depois e exige confirmação. Duplicatas e atípicos são mantidos por padrão. É possível remover linhas com ausência em uma coluna, excluir colunas, aparar espaços e unificar grafias pela primeira forma encontrada.
+5. Use **Desfazer última correção** ou **Restaurar base original**. O histórico mostra as operações e quantidades. A restauração é revisável e também pode ser desfeita.
+6. **Explorar Dados** contém a tabela, cores por registro, estatísticas, comparações, correlações e metodologia. A navegação não altera a base nem as correções aplicadas.
+7. Exporte o relatório PDF, Excel, texto ou CSV da tabela; **Baixar original** devolve o arquivo recebido sem modificações.
+
+Selecionar outra aba de uma pasta Excel abre uma nova prévia. Confirmá-la inicia uma análise sem correções da aba escolhida; cancelar mantém a aba ativa. Importar outra base também reinicia o histórico, sem modificar o arquivo anterior no disco.
+
+## Segurança e rastreabilidade dos dados
+
+- O original importado fica separado da base transformada e não é escrito de volta ao arquivo de origem. Cópias são passadas ao worker, e o estado anterior só é substituído quando o processamento termina com sucesso.
+- A checagem de duplicatas usa valores idênticos em todas as colunas da versão atual; espaços, tipos e separadores internos não são confundidos. Excluir colunas pode mudar quais linhas são consideradas duplicadas; confira a prévia.
+- Categorias não são unificadas automaticamente. A correção explícita de unificação usa caixa, acentos e espaços para identificar equivalências e preserva a primeira grafia encontrada.
+- Valores numéricos e datas são inferidos. Códigos de identificação ficam fora das métricas. Colunas mistas podem exigir correção na origem; o app não adivinha valores inválidos. A metodologia detalha decimais e datas ambíguas.
+- A exclusão opcional de atípicos vale para grupos, tendências e distribuição selecionada; o perfil geral e a tabela conservam os registros. Cada resultado informa sua base. Ausências não são imputadas.
+- Períodos sem registros não viram zero. A tendência não é ajustada com lacunas. Valores negativos são mantidos e exibidos em escalas com referência zero.
+- Suporte amostral é uma regra prática de tamanho da amostra, não uma garantia estatística. Intervalos são aproximados; correlação não demonstra causalidade.
+- A sessão é mantida em memória. Fechar ou recarregar descarta a análise; exporte o relatório antes. Não há recuperação automática nem autenticação.
+
+## Relatórios
+
+**PDF:** no Electron, o botão abre o diálogo de destino e salva via `printToPDF`. No navegador, abre a impressão: escolha salvar como PDF. O documento contém resumo executivo, indicadores, gráficos disponíveis, descobertas, diagnóstico, correções e limitações. O formato é A4, adequado a impressão. Documentos extensos podem ocupar várias páginas.
+
+**Excel:** inclui Resumo, Original (valores da aba importada), Base analisada, Base da métrica, Estatísticas, Qualidade, Descobertas, Metodologia, Histórico, Registros afetados, Colunas excluídas e Células alteradas. Textos são células literais, sem execução de fórmulas. Datas podem aparecer como valores ISO importados. Para manter fórmulas, formatação e outras abas exatamente como recebidas, use **Baixar original**. Fórmulas são lidas pelo valor armazenado no Excel e não são recalculadas pelo aplicativo.
+
+Os históricos longos mostram até cem identificadores por operação no Excel; a planilha de registros afetados lista integralmente as exclusões da versão atual. A prévia da interface é limitada a dez registros e trinta identificadores; ela não altera a quantidade analisada.
+
+## Limites e desempenho
+
+Limites de entrada: 50 MB, 100.000 registros, 200 colunas e 2 milhões de células por aba. Cabeçalhos vazios e registros com campos excedentes são rejeitados para evitar perda silenciosa. Linhas curtas permanecem com ausências sinalizadas. Arquivos vazios e bases sem nenhum valor são rejeitados.
+
+Leitura de Excel/CSV, análise e geração de Excel acontecem em Web Worker com indicação de processamento e botão **Cancelar**. Limites são medidas de proteção, não uma promessa de desempenho para qualquer arquivo; memória e complexidade das colunas também importam. Foi validada uma base de 20.000 registros; não foi realizado benchmark de todos os formatos no limite máximo.
+
+## Testes
 
 ```sh
 npx playwright install chromium
 npm test
+npm run test:desktop
 ```
 
-Se já houver Chromium instalado, use `CHROMIUM_PATH=/caminho/do/chromium npm test`. Em Linux, o teste detecta `/usr/bin/chromium` automaticamente. O teste usa um servidor temporário em loopback e verifica entrada, estado vazio, exemplo, abas, importação de texto e Excel com múltiplas planilhas, deduplicação, filtros, saída e ausência de rolagem horizontal em 390 px. `SCREENSHOT_DIR=/pasta npm test` salva capturas opcionais.
+`CHROMIUM_PATH` seleciona um Chromium já instalado; `/usr/bin/chromium` é detectado no Linux. `SCREENSHOT_DIR=/pasta npm test` salva capturas. O teste desktop usa o Electron instalado e, no Linux, Ozone em modo headless. Ele substitui apenas o diálogo de destino para verificar a geração real de PDF via preload e IPC. A seleção manual de destino e instaladores Windows/macOS devem ser conferidos nos sistemas correspondentes.
 
-## Instalação desktop e distribuição
+## Organização
 
-As instruções originais abaixo continuam aplicáveis. O nome de produto para os próximos pacotes é **Nexora Insight**. Instaladores não foram gerados nesta alteração.
+- `app/engine.js`: tipos, estatística e preparação de dados.
+- `app/processor.js`: validações, pipeline e comparação entre versões.
+- `app/analysis-worker.js`: execução fora da interface.
+- `app/insights.js`: evidências, recomendações por contexto e limitações.
+- `app/charts.js`: histogramas e séries temporais.
+- `app/reports.js`: estrutura de relatórios e exportação.
+- `app/app.js`: estado da sessão, navegação, prévias e eventos.
+- `app/index.html`, `base.css`, `nexora.css`: estrutura e apresentação.
+- `main.js`, `preload.js`: janela desktop e exportação PDF com isolamento de contexto.
 
----
+## Migração e distribuição
 
-# Diagnóstico de Dados (app de desktop)
+O pacote passou a se chamar `nexora-insight` (1.1.0), e o nome visível é Nexora Insight. O diretório legado `diagnostico-de-dados-desktop/` e o identificador de aplicativo `com.diagnosticodedados.app` foram conservados para não quebrar caminhos e identidade de instalação existentes.
 
-Aplicativo de análise de dados que roda no seu computador, **sem internet**. Os dados que você carrega nunca saem da sua máquina.
-
-Este projeto gera o instalador. O programa em si já está pronto em `app/index.html`.
-
-## O que você precisa
-
-- **Node.js 18 ou mais novo** (gratuito, em nodejs.org). Para conferir: abra o terminal e rode `node -v`.
-- Internet **somente na primeira vez**, para baixar as dependências. Depois o app funciona offline.
-
-## Como gerar o instalador
-
-Abra o terminal dentro desta pasta e rode:
-
-```
-npm install
+```sh
 npm run dist
 ```
 
-O instalador aparece na pasta `dist/`:
-
-| Sistema | Arquivo gerado |
-|---|---|
-| Windows | `Diagnóstico de Dados Setup 1.0.0.exe` (instalador) e uma versão portátil `.exe` |
-| macOS | `Diagnóstico de Dados-1.0.0.dmg` |
-| Linux | `Diagnóstico de Dados-1.0.0.AppImage` |
-
-**Importante:** cada instalador precisa ser gerado no próprio sistema. O `.exe` sai de um Windows, o `.dmg` sai de um Mac. Se você só tem um computador, use a opção do GitHub abaixo.
-
-## Só quero testar antes de instalar
-
-```
-npm install
-npm start
-```
-
-## Gerar os três instaladores sem ter os três computadores (GitHub)
-
-1. Crie um repositório no GitHub e envie o conteúdo desta pasta (incluindo `.github`).
-2. No repositório, abra **Actions > Gerar instaladores > Run workflow**.
-3. Quando terminar, baixe os instaladores em **Artifacts**, no fim da página da execução.
-
-## Avisos de segurança ao instalar
-
-Os instaladores **não são assinados digitalmente** (a assinatura exige um certificado pago). Por isso:
-
-- **Windows:** o SmartScreen pode mostrar "O Windows protegeu seu PC". Clique em **Mais informações > Executar assim mesmo**.
-- **macOS:** se o sistema bloquear a abertura, clique com o botão direito no app, escolha **Abrir** e confirme.
-
-## Como funciona o offline
-
-O comando `npm install` baixa o leitor de Excel (`xlsx`) e a fonte Manrope e os copia para `app/vendor/`. O app não faz nenhuma conexão de rede: a página bloqueia isso por política de segurança.
-
-## Atualizar o app depois
-
-Se você receber uma nova versão do `index.html`, substitua `app/index.html` mantendo estas duas linhas, que apontam para os arquivos locais:
-
-```
-<link rel="stylesheet" href="vendor/fonts.css">
-<script src="vendor/xlsx.full.min.js"></script>
-```
-
-Depois rode `npm run dist` de novo.
-
-## Estrutura
-
-```
-main.js            janela do app (Electron)
-app/index.html     o aplicativo
-app/vendor/        fonte e leitor de Excel (criado pelo npm install)
-scripts/vendor.js  copia as dependências para app/vendor
-build/icon.png     ícone
-package.json       configuração e scripts
-```
+Gere o pacote em cada sistema de destino ou use o workflow **Gerar instaladores** na raiz do repositório. Os artefatos saem em `dist/`. Instaladores não foram gerados nem assinados nesta alteração.

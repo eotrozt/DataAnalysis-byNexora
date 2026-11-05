@@ -13,18 +13,21 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: diagnostico-de-dados-desktop
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm install
+          node-version: 22
+      - run: npm ci
       - run: npx electron-builder --publish never
       - uses: actions/upload-artifact@v4
         with:
           name: instalador-${{ matrix.os }}
           path: |
-            dist/*.exe
-            dist/*.dmg
-            dist/*.AppImage
+            diagnostico-de-dados-desktop/dist/*.exe
+            diagnostico-de-dados-desktop/dist/*.dmg
+            diagnostico-de-dados-desktop/dist/*.AppImage
           if-no-files-found: error
