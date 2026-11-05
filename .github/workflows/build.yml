@@ -1,0 +1,33 @@
+name: Gerar instaladores
+# Gera o instalador do Windows, do macOS e do Linux em servidores do GitHub.
+# Use: aba "Actions" > "Gerar instaladores" > "Run workflow". Os arquivos ficam em "Artifacts".
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: diagnostico-de-dados-desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx electron-builder --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: instalador-${{ matrix.os }}
+          path: |
+            diagnostico-de-dados-desktop/dist/*.exe
+            diagnostico-de-dados-desktop/dist/*.dmg
+            diagnostico-de-dados-desktop/dist/*.AppImage
+          if-no-files-found: error

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'none'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Nexora Insight</title>
+<link rel="stylesheet" href="vendor/fonts.css">
+<link rel="stylesheet" href="base.css">
+
+<link rel="stylesheet" href="nexora.css">
+</head>
+<body>
+<div id="appShell">
+<aside class="sidebar" aria-label="Navegação principal"><div class="wordmark">NEXORA<span>INSIGHT</span></div><span class="nav-caption">WORKSPACE</span><nav><button class="nav-item active" data-nav="insights" aria-current="page"><span aria-hidden="true">▦</span> Visão Geral</button><button class="nav-item" data-nav="qualidade"><span aria-hidden="true">◇</span> Qualidade dos Dados</button><button class="nav-item" data-nav="explorar"><span aria-hidden="true">▤</span> Explorar Dados</button></nav><div class="sidebar-bottom"><div class="offline-note"><i></i><span>Análise local<small>Seu original é preservado</small></span></div></div></aside>
+<div class="wrap">
+  <header class="top">
+    <div><span class="eyebrow">Workspace / Análise de dados</span><p class="workspace-label">Nexora Insight</p></div>
+    <div class="btns"><span class="local-status"><i></i> Processamento local</span><button class="btn" id="pdfBtn" disabled type="button">Exportar PDF</button><button class="btn" id="excelBtn" disabled type="button">Exportar Excel</button><button class="btn" id="copyBtn" type="button" disabled>Copiar relatório</button></div>
+  </header>
+  <section class="page-heading" aria-labelledby="pageTitle"><div><span class="eyebrow">DATA ANALYSIS &amp; VISUAL INTELLIGENCE</span><h1 id="pageTitle" tabindex="-1">Visão geral</h1><p class="muted">Explore seus dados. Entenda os padrões. Decida com evidências.</p></div><div class="heading-actions"><span class="workspace-count" id="datasetStatus">Nenhuma base carregada</span><button class="btn" id="importBtn" type="button">Importar base ↑</button></div></section>
+  <section class="welcome panel" id="welcome"><div><span class="eyebrow">Seu ponto de partida</span><h2>Uma análise começa com bons dados.</h2><p class="muted">Importe sua base para conferir a qualidade, explorar métricas e encontrar insights com evidência.</p></div><ol class="steps"><li><b>01</b><span>Importe sua base<small>CSV, TXT ou Excel</small></span></li><li><b>02</b><span>Defina o contexto<small>Métrica e objetivo</small></span></li><li><b>03</b><span>Explore os resultados<small>Fatos, hipóteses e limites</small></span></li></ol></section>
+  <details class="source-settings" id="sourceSettings" open><summary>Importação e configurações <span>Dados, contexto e limpeza</span></summary>
+  <section class="grid2" id="importSection" aria-label="Entrada de dados e contexto">
+    <div class="panel stack">
+      <div class="eyebrow">1 · Dados</div>
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Carregar arquivo CSV ou Excel">
+        <span class="upload-symbol" aria-hidden="true">↑</span><strong>Traga seus dados para a análise</strong><span class="upload-action">Escolha um arquivo</span><span class="sub"> ou arraste e solte aqui</span>
+        <span class="muted">CSV, TSV, TXT, XLSX ou XLS · Seus arquivos ficam neste dispositivo.</span>
+        <input id="file" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" hidden>
+      </div>
+      <label class="f" id="sheetWrap" hidden>Planilha<select id="sheetSel"></select></label>
+      <details class="paste"><summary>Colar dados (com cabeçalho)</summary>
+        <textarea id="pasteArea" placeholder="coluna_a;coluna_b&#10;1;x&#10;2;y" spellcheck="false"></textarea>
+        <div class="btns" style="margin-top:8px"><button class="btn" id="pasteBtn" type="button">Analisar texto colado</button></div>
+      </details>
+      <div class="btns"><button class="btn" id="sampleBtn" type="button">Explorar exemplo sintético →</button></div>
+    </div>
+    <div class="panel stack">
+      <div class="eyebrow">2 · Contexto e escolhas</div>
+      <div class="row">
+        <label class="f">Área do negócio<select id="ctx"></select></label>
+        <label class="f">Métrica principal<select id="metricSel"></select></label>
+      </div>
+      <div class="row">
+        <label class="f">Coluna de data<select id="dateSel"></select></label>
+        <label class="f">Objetivo da análise (opcional)<input type="text" id="objective" placeholder="Ex.: entender queda de margem no Sul" maxlength="140"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="exDup"><span>Excluir linhas duplicadas idênticas<small>Opcional. Veja os registros afetados antes de confirmar a exclusão.</small></span></label>
+      <label class="check"><input type="checkbox" id="exOut"><span>Excluir valores atípicos da métrica nas análises de grupo e tendência<small>Regra de Tukey. Desligado por padrão: atípico não significa erro.</small></span></label>
+    </div>
+  </section>
+
+  <section class="panel stack" id="filterPanel" aria-label="Filtros e limpeza">
+    <div class="eyebrow">3 · Filtros e limpeza</div>
+    <div class="frow">
+      <label class="f">Coluna a filtrar<input type="text" id="fCol" list="colList" placeholder="Digite o nome da coluna" autocomplete="off" spellcheck="false"><datalist id="colList"></datalist></label>
+      <label class="f">O que fazer<select id="fAct"><option value="empty">Remover só as linhas vazias dessa coluna</option><option value="drop">Excluir a coluna inteira</option><option value="trim">Remover espaços no início e no fim</option><option value="normalize">Unificar grafias (caixa, acento e espaços)</option></select></label>
+      <button class="btn primary" id="fAdd" type="button">Prévia da correção</button>
+    </div>
+    <p class="sub" id="fMsg" role="status"></p>
+    <div id="fList" class="chips"></div>
+    <p class="sub">As correções só são aplicadas após confirmação. Ordem: ajustes de texto, linhas vazias, colunas e duplicatas. As linhas e colunas removidas saem de todas as áreas e do relatório. Ao carregar outro arquivo, os filtros são zerados.</p>
+  </section>
+
+  <div class="btns correction-actions"><button class="btn primary" id="previewOptions" disabled type="button">Revisar opções de limpeza</button><button class="btn" id="undoBtn" disabled type="button">Desfazer última correção</button><button class="btn" id="restoreBtn" disabled type="button">Restaurar base original</button><button class="btn" id="originalBtn" disabled type="button">Baixar original</button></div>
+  </details>
+  <section id="historyPanel" class="panel" hidden aria-label="Histórico de transformações"></section>
+  <div id="msg" role="alert" hidden></div>
+  <div id="banner" class="banner" hidden></div>
+  <div id="chips" class="chips" aria-label="Amostra utilizada"></div>
+
+
+  <main id="view"></main>
+  <footer>Os resultados descrevem apenas o arquivo carregado. Nenhum benchmark externo é usado e nenhuma relação aqui prova causa e efeito.</footer>
+</div>
+</div>
+<div id="busy" hidden role="status" aria-live="polite"><div><b>Processando neste dispositivo…</b><p>A análise anterior está preservada até a conclusão.</p><button id="cancelAnalysis" class="btn" type="button">Cancelar</button></div></div>
+<dialog id="previewDialog" aria-labelledby="previewTitle"><h2 id="previewTitle"></h2><div id="previewBody"></div><div class="btns"><button id="confirmPreview" class="btn primary" type="button">Confirmar</button><button id="cancelPreview" class="btn" type="button">Cancelar</button></div></dialog>
+<section id="printReport" hidden aria-label="Relatório Nexora Insight"></section>
+<div id="tip" role="tooltip"></div>
+<div id="pop" class="pop" hidden role="dialog" aria-label="Escolher cor da linha">
+  <div class="sw">
+    <button type="button" class="swatch" data-c="#55C7E8" style="background:#55C7E8" aria-label="Cyan"></button>
+    <button type="button" class="swatch" data-c="#35C995" style="background:#35C995" aria-label="Esmeralda"></button>
+    <button type="button" class="swatch" data-c="#FFBE45" style="background:#FFBE45" aria-label="Âmbar"></button>
+    <button type="button" class="swatch" data-c="#7278F5" style="background:#7278F5" aria-label="Violeta"></button>
+  </div>
+  <label class="f">Outra cor<input type="color" id="customColor" value="#55C7E8"></label>
+  <button type="button" class="btn" data-c="">Manter cor padrão</button>
+</div>
+
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="engine.js"></script>
+<script src="insights.js"></script>
+<script src="processor.js"></script>
+<script src="reports.js"></script>
+<script src="charts.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
