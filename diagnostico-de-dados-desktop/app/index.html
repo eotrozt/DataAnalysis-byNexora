@@ -1,0 +1,1264 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Nexora Insight</title>
+<link rel="stylesheet" href="vendor/fonts.css">
+<style>
+/* Layout: cabeçalho fino, painel de entrada em duas colunas, faixa de amostra sempre visível, abas por tipo de leitura. */
+:root{
+  --bg:#171B20; --panel:#222831; --panel-2:#2A313B; --line:rgba(244,246,248,.09); --line-2:rgba(244,246,248,.16);
+  --fg:#F4F6F8; --fg-2:#B4BDC8; --fg-3:#8A95A3;
+  --cyan:#55C7E8; --green:#35C995; --amber:#FFBE45; --violet:#7278F5;
+  --cyan-a:rgba(85,199,232,.14); --green-a:rgba(52,201,149,.14); --amber-a:rgba(255,190,69,.14); --violet-a:rgba(114,120,245,.18);
+  --font:'Manrope','Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--fg);font:400 14px/1.55 var(--font);margin:0;
+  padding-block:20px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:16px;min-width:0}
+h1,h2,h3,h4,p{margin:0}
+h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
+h2{font-size:16px;font-weight:700;letter-spacing:-.005em;text-wrap:balance}
+h3{font-size:14px;font-weight:700;text-wrap:balance}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg-3)}
+.muted{color:var(--fg-2)} .faint{color:var(--fg-3)}
+.num{font-variant-numeric:tabular-nums}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.mark{width:34px;height:34px;border-radius:9px;background:var(--panel);border:1px solid var(--line-2);display:grid;place-items:center;flex:none}
+.brand p{font-size:12.5px;color:var(--fg-2)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.panel.flat{background:transparent;border-color:var(--line)}
+.grid2{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+.stack{display:flex;flex-direction:column;gap:14px;min-width:0}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--fg-2);font-weight:600;min-width:0}
+select,input[type=text],textarea{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;font:500 13px var(--font);min-width:0}
+textarea{min-height:90px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-visible,.drop:focus-visible,[role=tab]:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+.drop{border:1.5px dashed var(--line-2);border-radius:12px;padding:22px 16px;text-align:center;cursor:pointer;background:var(--bg);transition:border-color .15s,background .15s}
+.drop:hover,.drop.over{border-color:var(--cyan);background:var(--cyan-a)}
+.drop strong{display:block;font-size:14px;margin-bottom:2px}
+.btn{font:600 13px var(--font);color:var(--fg);background:var(--panel-2);border:1px solid var(--line-2);border-radius:8px;padding:8px 14px;cursor:pointer;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--cyan)}
+.btn.primary{background:var(--cyan);border-color:var(--cyan);color:#10161B}
+.btn.primary:hover{background:#7AD6F0}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--fg);cursor:pointer}
+.check input{margin-top:3px;accent-color:var(--cyan);width:15px;height:15px;flex:none}
+.check small{display:block;color:var(--fg-3);font-size:12px;font-weight:400}
+details.paste summary{cursor:pointer;color:var(--fg-2);font-size:12.5px;font-weight:600}
+details.paste[open] summary{margin-bottom:8px}
+.banner{border:1px solid rgba(255,190,69,.4);background:var(--amber-a);border-radius:10px;padding:10px 14px;font-size:13px;display:flex;gap:10px;align-items:flex-start}
+.banner b{color:var(--amber)}
+.err{border-color:rgba(255,190,69,.6)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:flex;flex-direction:column;gap:1px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:0}
+.chip .k{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3);font-weight:600}
+.chip .v{font-size:14px;font-weight:700;overflow-wrap:anywhere}
+.chip.hl{border-color:rgba(85,199,232,.45)}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);scrollbar-width:thin}
+[role=tab]{font:600 13px var(--font);color:var(--fg-2);background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;white-space:nowrap;margin-bottom:-1px}
+[role=tab]:hover{color:var(--fg)}
+[role=tab][aria-selected=true]{color:var(--fg);border-bottom-color:var(--cyan)}
+.tab-n{margin-left:6px;font-size:11px;background:var(--panel-2);border-radius:99px;padding:1px 7px;color:var(--fg-2)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;border-radius:99px;padding:2px 10px;border:1px solid var(--line-2);white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.p-alta{color:var(--amber);background:var(--amber-a);border-color:rgba(255,190,69,.5)}
+.p-média{color:var(--cyan);background:var(--cyan-a);border-color:rgba(85,199,232,.4)}
+.p-baixa{color:var(--fg-2);background:transparent}
+.tag{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;border-radius:6px;padding:2px 7px;display:inline-block}
+.t-fato{color:var(--cyan);background:var(--cyan-a)}
+.t-hip{color:var(--amber);background:var(--amber-a)}
+.t-rec{color:var(--green);background:var(--green-a)}
+.t-imp{color:var(--violet);background:var(--violet-a)}
+.t-ev{color:var(--fg-2);background:var(--panel-2)}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:6px 0 2px}
+.cards{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.card-h{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.card-h h3{font-size:15px;flex:1 1 260px}
+.card-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.quad{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px}
+@media(max-width:760px){.quad{grid-template-columns:1fr}}
+.quad>div{display:flex;flex-direction:column;gap:7px;min-width:0}
+.quad ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--fg-2)}
+.quad p{font-size:13px;color:var(--fg-2)}
+.sub{font-size:12px;color:var(--fg-3);margin-top:2px}
+.conf{font-size:12px;color:var(--fg-3)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg-3);font-weight:600;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.scroll{overflow-x:auto;max-width:100%}
+.bar{height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden;min-width:60px}
+.bar>span{display:block;height:100%;border-radius:0 4px 4px 0;background:var(--cyan)}
+.bar.am>span{background:var(--amber)}
+.hbars{display:flex;flex-direction:column;gap:8px}
+.hb{display:grid;grid-template-columns:minmax(80px,170px) 1fr auto;gap:10px;align-items:center;font-size:13px}
+.hb .lb{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:520px){.hb{grid-template-columns:90px 1fr auto}}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.kv div{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.kv span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3);font-weight:600}
+.kv b{font-size:15px;font-variant-numeric:tabular-nums}
+.flow{display:flex;gap:6px;flex-wrap:wrap;align-items:stretch}
+.flow .st{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:110px}
+.flow .st span{display:block;font-size:11px;color:var(--fg-3)}
+.flow .st b{font-size:15px;font-variant-numeric:tabular-nums}
+.flow .st.fin{border-color:rgba(53,201,149,.5)}
+svg text{font-family:var(--font);fill:var(--fg-3);font-size:11px}
+svg .grid{stroke:var(--line);stroke-width:1}
+svg .axis{stroke:var(--line-2);stroke-width:1}
+.chart{width:100%;height:auto;display:block}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--fg-2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.heat{display:grid;gap:3px;font-size:12px;min-width:max-content}
+.heat .c{padding:7px 8px;text-align:center;border-radius:6px;font-variant-numeric:tabular-nums;min-width:62px}
+.heat .h{color:var(--fg-3);font-weight:600;font-size:11px;text-align:center;padding:6px 4px;overflow-wrap:anywhere;max-width:96px}
+.heat .rl{color:var(--fg-2);font-weight:600;font-size:11.5px;display:flex;align-items:center;padding-right:8px}
+ul.clean{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;color:var(--fg-2);font-size:13.5px}
+.note{border-left:2px solid var(--amber);background:var(--amber-a);border-radius:0 8px 8px 0;padding:9px 12px;font-size:13px;color:var(--fg)}
+.issue{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:10px 0;border-bottom:1px solid var(--line);align-items:start}
+.issue:last-child{border-bottom:0}
+.issue .t{font-size:13px}
+.issue .w{font-size:12px;color:var(--fg-3)}
+#tip{position:fixed;z-index:50;pointer-events:none;background:#0F1317;border:1px solid var(--line-2);border-radius:8px;padding:6px 10px;font-size:12px;max-width:260px;opacity:0;transition:opacity .08s}
+#tip.on{opacity:1}
+.empty{padding:28px;text-align:center;color:var(--fg-3)}
+.report-box{margin-top:10px}
+footer{font-size:12px;color:var(--fg-3);padding-top:6px}
+.frow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.5fr) auto;gap:12px;align-items:end}
+@media(max-width:700px){.frow{grid-template-columns:1fr}}
+.chip.rule{flex-direction:row;align-items:center;gap:10px}
+.chip.rule .tx{display:flex;flex-direction:column;min-width:0}
+.chip.rule button{background:none;border:0;color:var(--fg-3);font-size:16px;line-height:1;cursor:pointer;padding:4px 6px;border-radius:6px}
+.chip.rule button:hover{color:var(--amber)}
+.sub.bad{color:var(--amber)}
+.tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.swatch{width:24px;height:24px;border-radius:50%;border:2px solid var(--panel);cursor:pointer;padding:0;outline:1px solid var(--line-2)}
+.swatch.def{background:transparent;border:1.5px dashed var(--fg-3);outline:0}
+.dot{width:18px;height:18px;border-radius:50%;border:1.5px dashed var(--fg-3);background:transparent;cursor:pointer;padding:0;display:block}
+.dot.set{border:1.5px solid var(--line-2)}
+.pop{position:fixed;z-index:60;background:var(--panel-2);border:1px solid var(--line-2);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.45);min-width:210px}
+.pop .sw{display:flex;gap:8px}
+.pop input[type=color]{width:100%;height:32px;padding:0;border:1px solid var(--line-2);border-radius:8px;background:var(--bg);cursor:pointer}
+td.ctl{width:34px;padding-right:0}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<link rel="stylesheet" href="nexora.css">
+</head>
+<body>
+<section id="loginScreen" class="login-screen" aria-labelledby="loginTitle">
+  <div class="login-story"><div class="wordmark">NEXORA<span>INSIGHT</span></div><div class="login-intro"><span class="eyebrow">DATA ANALYSIS &amp; VISUAL INTELLIGENCE</span><h1>Análise precisa.<br>Visão <em>clara.</em></h1><p>Transforme seus dados em uma leitura de negócio: da qualidade da base às evidências que orientam decisões.</p><div class="login-principle"><span>01 / INSPECIONAR</span><span>02 / COMPREENDER</span><span>03 / DECIDIR</span></div></div><p class="login-foot">Nexora Insight · Análise de dados</p></div>
+  <div class="login-entry"><div class="login-card"><span class="eyebrow">BEM-VINDO À NEXORA INSIGHT</span><h2 id="loginTitle">Acesse seu workspace</h2><p class="muted">Tudo o que você precisa para começar a explorar seus dados em um só lugar.</p><div class="demo-note"><span class="demo-badge">Modo de demonstração</span><p>Explore o aplicativo livremente. Nesta versão de teste, não é necessário informar e-mail ou senha.</p></div><form id="demoLogin"><button class="btn primary login-button" type="submit">Entrar em demonstração <span aria-hidden="true">→</span></button></form><div class="login-privacy"><span aria-hidden="true">◇</span><p><b>Seus dados ficam com você</b><br>A análise acontece neste dispositivo, sem envio de arquivos para servidores.</p></div><p class="login-disclaimer">Acesso de teste · Sem autenticação nesta versão</p></div></div>
+</section>
+<div id="appShell" hidden>
+<aside class="sidebar" aria-label="Navegação principal"><div class="wordmark">NEXORA<span>INSIGHT</span></div><span class="nav-caption">WORKSPACE</span><nav><button class="nav-item active" data-nav="insights"><span aria-hidden="true">▦</span> Visão executiva</button><button class="nav-item" data-nav="metricas"><span aria-hidden="true">⌁</span> Padrões e métricas</button><button class="nav-item" data-nav="qualidade"><span aria-hidden="true">◇</span> Qualidade dos dados</button><button class="nav-item" data-nav="dados"><span aria-hidden="true">▤</span> Base de dados</button></nav><div class="sidebar-bottom"><div class="offline-note"><i></i><span>Análise local<small>Seus arquivos neste dispositivo</small></span></div><button class="nav-item" id="logoutBtn"><span aria-hidden="true">↗</span> Sair da demonstração</button></div></aside>
+<div class="wrap">
+  <header class="top">
+    <div><span class="eyebrow">Workspace / Análise de dados</span><p class="workspace-label">Nexora Insight <span class="demo-badge">Demonstração</span></p></div>
+    <div class="btns"><span class="local-status"><i></i> Processamento local</span><button class="btn" id="copyBtn" type="button" disabled>Copiar relatório</button></div>
+  </header>
+  <section class="page-heading" aria-labelledby="pageTitle"><div><span class="eyebrow">DATA ANALYSIS &amp; VISUAL INTELLIGENCE</span><h1 id="pageTitle" tabindex="-1">Visão geral</h1><p class="muted">Explore seus dados. Entenda os padrões. Decida com evidências.</p></div><div class="heading-actions"><span class="workspace-count" id="datasetStatus">Nenhuma base carregada</span><button class="btn" id="importBtn" type="button">Importar base ↑</button></div></section>
+  <section class="welcome panel" id="welcome"><div><span class="eyebrow">Seu ponto de partida</span><h2>Uma análise começa com bons dados.</h2><p class="muted">Importe sua base para conferir a qualidade, explorar métricas e encontrar insights com evidência.</p></div><ol class="steps"><li><b>01</b><span>Importe sua base<small>CSV, TXT ou Excel</small></span></li><li><b>02</b><span>Defina o contexto<small>Métrica e objetivo</small></span></li><li><b>03</b><span>Explore os resultados<small>Fatos, hipóteses e limites</small></span></li></ol></section>
+  <details class="source-settings" id="sourceSettings" open><summary>Importação e configurações <span>Dados, contexto e limpeza</span></summary>
+  <section class="grid2" id="importSection" aria-label="Entrada de dados e contexto">
+    <div class="panel stack">
+      <div class="eyebrow">1 · Dados</div>
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Carregar arquivo CSV ou Excel">
+        <span class="upload-symbol" aria-hidden="true">↑</span><strong>Traga seus dados para a análise</strong><span class="upload-action">Escolha um arquivo</span><span class="sub"> ou arraste e solte aqui</span>
+        <span class="muted">CSV, TSV, TXT, XLSX ou XLS · Seus arquivos ficam neste dispositivo.</span>
+        <input id="file" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" hidden>
+      </div>
+      <label class="f" id="sheetWrap" hidden>Planilha<select id="sheetSel"></select></label>
+      <details class="paste"><summary>Colar dados (com cabeçalho)</summary>
+        <textarea id="pasteArea" placeholder="coluna_a;coluna_b&#10;1;x&#10;2;y" spellcheck="false"></textarea>
+        <div class="btns" style="margin-top:8px"><button class="btn" id="pasteBtn" type="button">Analisar texto colado</button></div>
+      </details>
+      <div class="btns"><button class="btn" id="sampleBtn" type="button">Explorar exemplo sintético →</button></div>
+    </div>
+    <div class="panel stack">
+      <div class="eyebrow">2 · Contexto e escolhas</div>
+      <div class="row">
+        <label class="f">Área do negócio<select id="ctx"></select></label>
+        <label class="f">Métrica principal<select id="metricSel"></select></label>
+      </div>
+      <div class="row">
+        <label class="f">Coluna de data<select id="dateSel"></select></label>
+        <label class="f">Objetivo da análise (opcional)<input type="text" id="objective" placeholder="Ex.: entender queda de margem no Sul" maxlength="140"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="exDup" checked><span>Excluir linhas duplicadas idênticas<small>Remove de verdade as linhas repetidas e mantém a primeira ocorrência.</small></span></label>
+      <label class="check"><input type="checkbox" id="exOut"><span>Excluir valores atípicos da métrica nas análises de grupo e tendência<small>Regra de Tukey. Desligado por padrão: atípico não significa erro.</small></span></label>
+    </div>
+  </section>
+
+  <section class="panel stack" id="filterPanel" aria-label="Filtros e limpeza">
+    <div class="eyebrow">3 · Filtros e limpeza</div>
+    <div class="frow">
+      <label class="f">Coluna a filtrar<input type="text" id="fCol" list="colList" placeholder="Digite o nome da coluna" autocomplete="off" spellcheck="false"><datalist id="colList"></datalist></label>
+      <label class="f">O que fazer<select id="fAct"><option value="empty">Remover só as linhas vazias dessa coluna</option><option value="drop">Excluir a coluna inteira</option></select></label>
+      <button class="btn primary" id="fAdd" type="button">Adicionar filtro</button>
+    </div>
+    <p class="sub" id="fMsg" role="status"></p>
+    <div id="fList" class="chips"></div>
+    <p class="sub">Ordem de aplicação: linhas vazias, colunas, duplicatas. As linhas e colunas removidas saem de todas as abas e do relatório. Ao carregar outro arquivo, os filtros são zerados.</p>
+  </section>
+
+  </details>
+  <div id="msg" role="alert" hidden></div>
+  <div id="banner" class="banner" hidden></div>
+  <div id="chips" class="chips" aria-label="Amostra utilizada"></div>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <main id="view"></main>
+  <footer>Os resultados descrevem apenas o arquivo carregado. Nenhum benchmark externo é usado e nenhuma relação aqui prova causa e efeito.</footer>
+</div>
+</div>
+<div id="tip" role="tooltip"></div>
+<div id="pop" class="pop" hidden role="dialog" aria-label="Escolher cor da linha">
+  <div class="sw">
+    <button type="button" class="swatch" data-c="#55C7E8" style="background:#55C7E8" aria-label="Cyan"></button>
+    <button type="button" class="swatch" data-c="#35C995" style="background:#35C995" aria-label="Esmeralda"></button>
+    <button type="button" class="swatch" data-c="#FFBE45" style="background:#FFBE45" aria-label="Âmbar"></button>
+    <button type="button" class="swatch" data-c="#7278F5" style="background:#7278F5" aria-label="Violeta"></button>
+  </div>
+  <label class="f">Outra cor<input type="color" id="customColor" value="#55C7E8"></label>
+  <button type="button" class="btn" data-c="">Manter cor padrão</button>
+</div>
+
+<script src="vendor/xlsx.full.min.js"></script>
+<script>
+/* Motor de análise. Sem dependências. Toda métrica é calculada dos dados carregados. */
+const Engine = (() => {
+  const MISSING = new Set(['', 'null', 'na', 'n/a', 'nan', '-', '--', 'n/d', 'nd', 'none', '#n/a', 'nulo', 's/d', 'undefined', '#valor!', '#value!']);
+  const isMissing = v => v === null || v === undefined || MISSING.has(String(v).trim().toLowerCase());
+  const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+  /* ---------- parsing ---------- */
+  function parseCSV(text) {
+    text = text.replace(/^﻿/, '');
+    const head = text.split(/\r?\n/).slice(0, 10).join('\n');
+    const cands = [',', ';', '\t', '|'];
+    let delim = ',', best = -1;
+    for (const d of cands) { const c = head.split(d).length - 1; if (c > best) { best = c; delim = d; } }
+    const rows = []; let row = [], cur = '', q = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (q) {
+        if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+        else cur += ch;
+      } else if (ch === '"') q = true;
+      else if (ch === delim) { row.push(cur); cur = ''; }
+      else if (ch === '\n' || ch === '\r') {
+        if (ch === '\r' && text[i + 1] === '\n') i++;
+        row.push(cur); cur = ''; rows.push(row); row = [];
+      } else cur += ch;
+    }
+    if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+    return { rows, delim };
+  }
+
+  function parseNum(raw) {
+    if (typeof raw === 'number') return isFinite(raw) ? raw : null;
+    if (raw === null || raw === undefined) return null;
+    let s = String(raw).trim(); if (!s) return null;
+    let neg = false;
+    if (/^\(.*\)$/.test(s)) { neg = true; s = s.slice(1, -1); }
+    s = s.replace(/^(R\$|US\$|\$|€|£)\s*/i, '').replace(/\s*%$/, '').replace(/\s/g, '');
+    if (s.startsWith('-')) { neg = !neg; s = s.slice(1); } else if (s.startsWith('+')) s = s.slice(1);
+    if (!/^\d[\d.,]*$/.test(s)) return null;
+    const hasC = s.includes(','), hasD = s.includes('.');
+    let t;
+    if (hasC && hasD) {
+      if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+        if (!/^\d{1,3}(\.\d{3})*,\d+$/.test(s)) return null;
+        t = s.replace(/\./g, '').replace(',', '.');
+      } else {
+        if (!/^\d{1,3}(,\d{3})*\.\d+$/.test(s)) return null;
+        t = s.replace(/,/g, '');
+      }
+    } else if (hasC) {
+      const p = s.split(',');
+      if (p.length > 2) { if (!/^\d{1,3}(,\d{3})+$/.test(s)) return null; t = s.replace(/,/g, ''); }
+      else t = s.replace(',', '.');
+    } else if (hasD) {
+      const p = s.split('.');
+      if (p.length > 2) { if (!/^\d{1,3}(\.\d{3})+$/.test(s)) return null; t = s.replace(/\./g, ''); }
+      else t = s;
+    } else t = s;
+    const n = Number(t);
+    if (!isFinite(n)) return null;
+    return neg ? -n : n;
+  }
+
+  function dateParts(s) {
+    s = String(s).trim();
+    let m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[T\s].*)?$/);
+    if (m) return { kind: 'ymd', a: +m[1], b: +m[2], c: +m[3] };
+    m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})(?:[T\s].*)?$/);
+    if (m) return { kind: 'xy', a: +m[1], b: +m[2], c: +m[3] };
+    return null;
+  }
+  const dim = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+  function toTs(p, fmt) {
+    let y, mo, d;
+    if (p.kind === 'ymd') { y = p.a; mo = p.b; d = p.c; }
+    else if (fmt === 'mdy') { mo = p.a; d = p.b; y = p.c; }
+    else { d = p.a; mo = p.b; y = p.c; }
+    if (mo < 1 || mo > 12 || d < 1 || d > dim(y, mo)) return null;
+    return Date.UTC(y, mo - 1, d);
+  }
+
+  /* ---------- estatística ---------- */
+  const sum = a => { let s = 0; for (const x of a) s += x; return s; };
+  const mean = a => a.length ? sum(a) / a.length : NaN;
+  const sd = a => { if (a.length < 2) return NaN; const m = mean(a); let s = 0; for (const x of a) s += (x - m) ** 2; return Math.sqrt(s / (a.length - 1)); };
+  const quantile = (s, p) => { if (!s.length) return NaN; const i = (s.length - 1) * p, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); };
+  function describe(a) {
+    const s = [...a].sort((x, y) => x - y);
+    const m = mean(s), d = sd(s);
+    return { n: s.length, sum: sum(s), mean: m, median: quantile(s, .5), sd: d, min: s[0], p25: quantile(s, .25), p75: quantile(s, .75), p90: quantile(s, .9), max: s[s.length - 1], cv: m !== 0 && isFinite(d) ? d / Math.abs(m) : NaN };
+  }
+  function ranks(a) {
+    const idx = a.map((v, i) => [v, i]).sort((x, y) => x[0] - y[0]); const r = new Array(a.length); let i = 0;
+    while (i < idx.length) { let j = i; while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++; const rk = (i + j) / 2 + 1; for (let k = i; k <= j; k++) r[idx[k][1]] = rk; i = j + 1; }
+    return r;
+  }
+  function pearson(x, y) {
+    const mx = mean(x), my = mean(y); let sxy = 0, sxx = 0, syy = 0;
+    for (let i = 0; i < x.length; i++) { const a = x[i] - mx, b = y[i] - my; sxy += a * b; sxx += a * a; syy += b * b; }
+    const d = Math.sqrt(sxx * syy); return d === 0 ? NaN : sxy / d;
+  }
+  function fisherCI(r, n) { if (n <= 3 || !isFinite(r) || Math.abs(r) >= 1) return null; const z = Math.atanh(r), se = 1 / Math.sqrt(n - 3); return [Math.tanh(z - 1.96 * se), Math.tanh(z + 1.96 * se)]; }
+  function ols(y) {
+    const n = y.length, x = y.map((_, i) => i), mx = mean(x), my = mean(y); let sxy = 0, sxx = 0;
+    for (let i = 0; i < n; i++) { sxy += (x[i] - mx) * (y[i] - my); sxx += (x[i] - mx) ** 2; }
+    const slope = sxx ? sxy / sxx : 0; return { slope, intercept: my - slope * mx, r: pearson(x, y) };
+  }
+  const fences = vals => {
+    if (vals.length < 8) return null;
+    const s = [...vals].sort((a, b) => a - b), q1 = quantile(s, .25), q3 = quantile(s, .75), iqr = q3 - q1;
+    if (iqr === 0) return null;
+    return { q1, q3, iqr, low: q1 - 1.5 * iqr, high: q3 + 1.5 * iqr, xlow: q1 - 3 * iqr, xhigh: q3 + 3 * iqr };
+  };
+
+  /* ---------- dataset ---------- */
+  function inferCol(name, raw) {
+    const idxs = []; for (let i = 0; i < raw.length; i++) if (!isMissing(raw[i])) idxs.push(i);
+    const m = idxs.length;
+    const c = { name, raw, missing: raw.length - m, nonMissing: m, num: null, ts: null, fmt: null };
+    if (m === 0) { c.type = 'vazia'; c.uniq = 0; return c; }
+    const numVals = new Array(raw.length).fill(null); let numC = 0;
+    for (const i of idxs) { const v = parseNum(raw[i]); if (v !== null) { numVals[i] = v; numC++; } }
+    const parts = new Array(raw.length).fill(null); let dateLike = 0, dayF = 0, monF = 0;
+    for (const i of idxs) {
+      if (typeof raw[i] === 'number') continue;
+      const p = dateParts(raw[i]);
+      if (p) { parts[i] = p; dateLike++; if (p.kind === 'xy') { if (p.a > 12) dayF++; if (p.b > 12) monF++; } }
+    }
+    const uniqSet = new Set(idxs.map(i => String(raw[i]).trim()));
+    const uniq = uniqSet.size; c.uniq = uniq;
+    const idName = /(^|[^a-z])(id|cod|codigo|código|uuid|cpf|cnpj|cep|sku|protocolo|chave)([^a-z]|$)/i.test(name);
+    if (numC / m >= 0.9) {
+      if (idName && uniq / m >= 0.9) c.type = 'id'; else { c.type = 'numérica'; c.num = numVals; }
+    } else if (dateLike / m >= 0.9) {
+      c.type = 'data'; c.fmt = monF > dayF ? 'mdy' : 'dmy';
+      c.ts = parts.map(p => p ? toTs(p, c.fmt) : null);
+      c.dateAmbiguous = idxs.filter(i => parts[i] && parts[i].kind === 'xy' && parts[i].a <= 12 && parts[i].b <= 12).length;
+    } else {
+      const avgLen = idxs.reduce((s, i) => s + String(raw[i]).length, 0) / m;
+      if ((idName && uniq / m >= 0.9) || (uniq / m > 0.95 && m >= 20 && avgLen <= 40)) c.type = 'id';
+      else if (uniq <= 50 && (uniq / m <= 0.5 || uniq <= 5)) c.type = 'categórica';
+      else c.type = 'texto';
+    }
+    return c;
+  }
+
+  function uniqueNames(headers) {
+    const seen = {};
+    return headers.map((h, i) => { let n = String(h ?? '').trim() || ('coluna_' + (i + 1)); if (seen[n]) { seen[n]++; n = n + '_' + seen[n]; } else seen[n] = 1; return n; });
+  }
+
+  /* Procura a coluna digitada pelo usuário (ignora caixa, acento e símbolos). */
+  function findColumn(names, query) {
+    const q = norm(query);
+    if (!q) return { err: 'Digite o nome de uma coluna.' };
+    const exact = names.filter(n => norm(n) === q);
+    if (exact.length) return { name: exact[0] };
+    const part = names.filter(n => norm(n).includes(q));
+    if (part.length === 1) return { name: part[0], approx: true };
+    if (part.length > 1) return { err: `"${query}" corresponde a mais de uma coluna: ${part.slice(0, 6).join(', ')}. Digite o nome completo.` };
+    return { err: `Coluna "${query}" não encontrada. Colunas disponíveis: ${names.slice(0, 12).join(', ')}${names.length > 12 ? '…' : ''}.` };
+  }
+
+  /* Limpeza real: aplica os filtros e REMOVE as linhas/colunas antes de qualquer análise.
+     Ordem: linhas vazias, colunas, duplicatas. */
+  function prepare(headers, rows, ragged, opts) {
+    const names = uniqueNames(headers), rawN = rows.length;
+    const rules = (opts.rules || []).map(r => ({ ...r, idx: names.indexOf(r.col) }));
+    const res = rules.map(r => ({ col: r.col, action: r.action, ok: r.idx >= 0, removed: 0 }));
+    const cell = (i, j) => rows[i][j] === undefined ? null : rows[i][j];
+    let keepRows = rows.map((_, i) => i), filterRemoved = 0;
+    rules.forEach((r, k) => {
+      if (r.action !== 'empty' || r.idx < 0) return;
+      const before = keepRows.length;
+      keepRows = keepRows.filter(i => !isMissing(cell(i, r.idx)));
+      res[k].removed = before - keepRows.length; filterRemoved += res[k].removed;
+    });
+    const dropIdx = new Set(rules.filter(r => r.action === 'drop' && r.idx >= 0).map(r => r.idx));
+    rules.forEach((r, k) => { if (r.action === 'drop' && r.idx >= 0) res[k].removed = 1; });
+    const keepCols = names.map((_, j) => j).filter(j => !dropIdx.has(j));
+    const outHeaders = keepCols.map(j => names[j]);
+    const afterFilterN = keepRows.length;
+    let dup = null, dupMetricSum = null;
+    if (opts.dedupe) {
+      const seen = new Set(), keep = [], extra = [];
+      for (const i of keepRows) {
+        const k = keepCols.map(j => { const v = cell(i, j); return v == null ? '' : String(v).trim(); }).join('\u0001');
+        if (seen.has(k)) extra.push(i); else { seen.add(k); keep.push(i); }
+      }
+      if (extra.length) {
+        const mj = opts.metricName ? outHeaders.indexOf(opts.metricName) : -1;
+        if (mj >= 0) { dupMetricSum = 0; for (const i of extra) { const v = parseNum(cell(i, keepCols[mj])); if (v !== null) dupMetricSum += v; } }
+        dup = { extra: extra.length, pct: afterFilterN ? extra.length / afterFilterN : 0, of: afterFilterN, rows: extra.slice(0, 12).map(i => i + 2) };
+      }
+      keepRows = keep;
+    }
+    return {
+      headers: outHeaders, rows: keepRows.map(i => keepCols.map(j => cell(i, j))), rowNos: keepRows.map(i => i + 2), ragged,
+      pre: { rawN, afterFilterN, filterRemoved, dup, dupMetricSum, dropped: [...dropIdx].map(j => names[j]), totalCols: names.length, rules: res }
+    };
+  }
+
+  function buildDataset(headers, rows, ragged, rowNos) {
+    const names = uniqueNames(headers);
+    const cols = names.map((name, j) => { const raw = rows.map(r => r[j] === undefined ? null : r[j]); const c = inferCol(name, raw); c.idx = j; return c; });
+    return { cols, nRows: rows.length, rowNo: rowNos || rows.map((_, i) => i + 2), ragged: ragged || 0 };
+  }
+
+  /* ---------- análise ---------- */
+  function analyze(D, cfg) {
+    const N = D.nRows, A = { cfg, N };
+    const now = Date.now();
+
+    // duplicatas (linha idêntica)
+    const keyOf = i => D.cols.map(c => { const v = c.raw[i]; return v == null ? '' : String(v).trim(); }).join('\u0001');
+    const seen = new Map(), dupExtra = new Set();
+    for (let i = 0; i < N; i++) { const k = keyOf(i); if (seen.has(k)) dupExtra.add(i); else seen.set(k, i); }
+    A.pre = cfg.pre || { rawN: N, afterFilterN: N, filterRemoved: 0, dup: null, dupMetricSum: null, dropped: [], totalCols: D.cols.length, rules: [] };
+    A.dup = A.pre.dup ? { ...A.pre.dup, removed: true }
+      : { extra: dupExtra.size, pct: N ? dupExtra.size / N : 0, of: N, rows: [...dupExtra].slice(0, 12).map(i => D.rowNo[i]), removed: false };
+    A.dupNos = new Set([...dupExtra].map(i => D.rowNo[i]));
+    const idc = D.cols.find(c => c.type === 'id');
+    if (idc) {
+      const m = new Map();
+      for (let i = 0; i < N; i++) { if (isMissing(idc.raw[i])) continue; const k = String(idc.raw[i]).trim(); if (!m.has(k)) m.set(k, []); m.get(k).push(i); }
+      let keys = 0, conflict = 0;
+      for (const arr of m.values()) if (arr.length > 1) { keys++; if (arr.slice(1).some(i => !dupExtra.has(i))) conflict++; }
+      A.dupId = { col: idc.name, keys, conflict };
+    }
+    const base = []; for (let i = 0; i < N; i++) base.push(i); /* duplicatas, se pedido, já foram removidas em prepare() */
+    A.base = base;
+
+    // qualidade por coluna
+    const issues = [];
+    A.cols = D.cols.map(c => {
+      const o = { name: c.name, type: c.type, missing: c.missing, missingPct: N ? c.missing / N : 0, uniq: c.uniq, notes: [] };
+      if (c.missing > 0) issues.push({ sev: o.missingPct >= .2 ? 'alta' : o.missingPct >= .05 ? 'média' : 'baixa', kind: 'ausentes', col: c.name, count: c.missing, text: `${c.missing} linhas sem valor (${(o.missingPct * 100).toFixed(1)}%)` });
+      if (c.type === 'vazia') { o.notes.push('coluna vazia'); issues.push({ sev: 'média', kind: 'coluna vazia', col: c.name, count: N, text: 'Coluna sem nenhum valor' }); return o; }
+      if (c.nonMissing > 1 && c.uniq === 1) { o.notes.push('valor constante'); issues.push({ sev: 'baixa', kind: 'constante', col: c.name, count: c.nonMissing, text: 'Todos os valores preenchidos são iguais' }); }
+      const ws = c.raw.filter(v => typeof v === 'string' && v !== v.trim()).length;
+      if (ws) { o.notes.push('espaços extras'); issues.push({ sev: 'baixa', kind: 'espaços', col: c.name, count: ws, text: `${ws} valores com espaços no início ou fim` }); }
+      if (c.type === 'numérica') {
+        const bad = []; for (let i = 0; i < N; i++) if (!isMissing(c.raw[i]) && c.num[i] === null) bad.push(i);
+        if (bad.length) { o.notes.push('texto em coluna numérica'); issues.push({ sev: bad.length / N > .02 ? 'alta' : 'média', kind: 'tipo misto', col: c.name, count: bad.length, text: `${bad.length} valores não numéricos (ex.: ${[...new Set(bad.slice(0, 20).map(i => String(c.raw[i]).trim()))].slice(0, 4).map(x => '"' + x + '"').join(', ')})`, rows: bad.slice(0, 8).map(i => D.rowNo[i]) }); }
+        const vals = c.num.filter(v => v !== null);
+        const neg = vals.filter(v => v < 0).length;
+        if (neg) { o.notes.push('valores negativos'); issues.push({ sev: /qtd|quant|pre[cç]o|idade|estoque/i.test(c.name) ? 'média' : 'baixa', kind: 'negativos', col: c.name, count: neg, text: `${neg} valores negativos (mín. ${vals.reduce((a, b) => Math.min(a, b))})` }); }
+        const sentinels = [-1, -9, -99, -999, -9999, 99, 999, 9999, 99999];
+        for (const sv of sentinels) { const k = vals.filter(v => v === sv).length; if (k >= 3 && k / vals.length < .2) { issues.push({ sev: 'baixa', kind: 'valor-sentinela', col: c.name, count: k, text: `Valor ${sv} aparece ${k} vezes; pode ser código de "sem informação" (não confirmado)` }); break; } }
+      }
+      if (c.type === 'data') {
+        const badDate = [], future = [], old = [];
+        for (let i = 0; i < N; i++) {
+          if (isMissing(c.raw[i])) continue;
+          if (c.ts[i] === null) badDate.push(i);
+          else { if (c.ts[i] > now) future.push(i); if (new Date(c.ts[i]).getUTCFullYear() < 1990) old.push(i); }
+        }
+        if (badDate.length) { o.notes.push('datas inválidas'); issues.push({ sev: 'média', kind: 'datas inválidas', col: c.name, count: badDate.length, text: `${badDate.length} valores que não são datas válidas (ex.: "${String(c.raw[badDate[0]]).trim()}")`, rows: badDate.slice(0, 8).map(i => D.rowNo[i]) }); }
+        if (future.length) { o.notes.push('datas futuras'); issues.push({ sev: 'média', kind: 'datas futuras', col: c.name, count: future.length, text: `${future.length} datas posteriores a hoje`, rows: future.slice(0, 8).map(i => D.rowNo[i]) }); }
+        if (old.length) issues.push({ sev: 'baixa', kind: 'datas antigas', col: c.name, count: old.length, text: `${old.length} datas anteriores a 1990` });
+        if (c.dateAmbiguous) o.notes.push(`formato ${c.fmt === 'mdy' ? 'mês/dia' : 'dia/mês'} assumido`);
+      }
+      if (c.type === 'categórica') {
+        const g = new Map();
+        for (let i = 0; i < N; i++) { if (isMissing(c.raw[i])) continue; const k = norm(c.raw[i]); if (!g.has(k)) g.set(k, new Map()); const raw = String(c.raw[i]); g.get(k).set(raw, (g.get(k).get(raw) || 0) + 1); }
+        const variants = [];
+        for (const [k, mp] of g) if (mp.size > 1) variants.push({ key: k, forms: [...mp.entries()].sort((a, b) => b[1] - a[1]).map(([v, n]) => ({ v, n })) });
+        if (variants.length) { o.variants = variants; o.notes.push('variações de escrita'); issues.push({ sev: 'média', kind: 'categorias inconsistentes', col: c.name, count: variants.reduce((s, v) => s + v.forms.reduce((a, f) => a + f.n, 0), 0), text: `${variants.length} categoria(s) escrita(s) de mais de uma forma`, variants }); }
+      }
+      return o;
+    });
+    if (A.dup.extra) issues.push({ sev: A.dup.pct >= .05 ? 'alta' : 'média', kind: 'duplicatas', col: '(linha inteira)', count: A.dup.extra, text: `${A.dup.extra} linhas idênticas a outra anterior (${(A.dup.pct * 100).toFixed(1)}%)${A.dup.removed ? ', já removidas da base' : ''}`, rows: A.dup.rows });
+    if (A.dupId && A.dupId.conflict) issues.push({ sev: 'alta', kind: 'id duplicado', col: A.dupId.col, count: A.dupId.conflict, text: `${A.dupId.conflict} identificadores repetidos com conteúdo diferente nas linhas` });
+    if (D.ragged) issues.push({ sev: 'média', kind: 'estrutura', col: '(arquivo)', count: D.ragged, text: `${D.ragged} linhas com número de colunas diferente do cabeçalho` });
+
+    // outliers por coluna numérica (Tukey, sobre a base)
+    A.outliers = [];
+    for (const c of D.cols) {
+      if (c.type !== 'numérica') continue;
+      const arr = []; for (const i of base) if (c.num[i] !== null) arr.push({ i, v: c.num[i] });
+      const f = fences(arr.map(a => a.v)); if (!f) continue;
+      const out = arr.filter(a => a.v < f.low || a.v > f.high);
+      if (!out.length) continue;
+      const total = sum(arr.map(a => a.v));
+      const outSum = sum(out.map(a => a.v));
+      A.outliers.push({ col: c.name, n: arr.length, f, count: out.length, extreme: out.filter(a => a.v < f.xlow || a.v > f.xhigh).length, high: out.filter(a => a.v > f.high).length, low: out.filter(a => a.v < f.low).length, shareOfSum: arr.every(a => a.v >= 0) && total > 0 ? outSum / total : null, top: out.sort((a, b) => Math.abs(b.v) - Math.abs(a.v)).slice(0, 5).map(a => ({ row: D.rowNo[a.i], v: a.v })) });
+    }
+
+    // métrica principal
+    const mc = cfg.metric != null ? D.cols[cfg.metric] : null;
+    A.metricCol = mc;
+    let mrows = [];
+    if (mc && mc.type === 'numérica') {
+      const arr = []; for (const i of base) if (mc.num[i] !== null) arr.push({ i, v: mc.num[i] });
+      const f = fences(arr.map(a => a.v));
+      const inl = f ? arr.filter(a => a.v >= f.low && a.v <= f.high) : arr;
+      const outl = f ? arr.filter(a => a.v < f.low || a.v > f.high) : [];
+      A.metric = { name: mc.name, f, all: describe(arr.map(a => a.v)), clean: describe(inl.map(a => a.v)), outRows: outl.map(a => ({ row: D.rowNo[a.i], v: a.v })).sort((a, b) => Math.abs(b.v) - Math.abs(a.v)), nOut: outl.length, inliers: inl.map(a => a.v), allVals: arr.map(a => a.v), missingInBase: base.length - arr.length };
+      mrows = cfg.excludeOut ? inl : arr;
+    }
+    A.mrows = mrows;
+    A.nUsed = mrows.length;
+
+    // colunas numéricas / categóricas (perfil)
+    A.numProfile = D.cols.filter(c => c.type === 'numérica').map(c => { const v = []; for (const i of base) if (c.num[i] !== null) v.push(c.num[i]); return { name: c.name, ...describe(v), missing: base.length - v.length }; }).filter(p => p.n > 0);
+    A.catProfile = D.cols.filter(c => c.type === 'categórica').map(c => {
+      const g = new Map(); let n = 0;
+      for (const i of base) { if (isMissing(c.raw[i])) continue; n++; const k = norm(c.raw[i]); if (!g.has(k)) g.set(k, { forms: new Map(), n: 0 }); const e = g.get(k); e.n++; const r = String(c.raw[i]).trim(); e.forms.set(r, (e.forms.get(r) || 0) + 1); }
+      const top = [...g.values()].map(e => ({ label: [...e.forms.entries()].sort((a, b) => b[1] - a[1])[0][0], n: e.n, share: e.n / n })).sort((a, b) => b.n - a.n);
+      return { name: c.name, n, distinct: g.size, top: top.slice(0, 8) };
+    });
+
+    // grupos × métrica
+    A.groups = [];
+    if (mc && mrows.length) {
+      const mmap = new Map(mrows.map(r => [r.i, r.v]));
+      for (const c of D.cols) {
+        if (c.type !== 'categórica') continue;
+        const g = new Map(); let lost = 0;
+        for (const [i, v] of mmap) { if (isMissing(c.raw[i])) { lost++; continue; } const k = norm(c.raw[i]); if (!g.has(k)) g.set(k, { forms: new Map(), vals: [] }); const e = g.get(k); e.vals.push(v); const r = String(c.raw[i]).trim(); e.forms.set(r, (e.forms.get(r) || 0) + 1); }
+        if (g.size < 2 || g.size > 30) continue;
+        const total = sum(mrows.map(r => r.v)) ;
+        const list = [...g.values()].map(e => { const d = describe(e.vals); const se = d.n > 1 ? d.sd / Math.sqrt(d.n) : NaN; return { label: [...e.forms.entries()].sort((a, b) => b[1] - a[1])[0][0], ...d, share: total > 0 ? d.sum / total : null, ci: d.n >= 10 && isFinite(se) ? [d.mean - 1.96 * se, d.mean + 1.96 * se] : null }; }).sort((a, b) => b.mean - a.mean);
+        A.groups.push({ dim: c.name, lost, list, nonNeg: mrows.every(r => r.v >= 0) });
+      }
+    }
+
+    // tendência temporal
+    A.trend = null;
+    const dc = cfg.date != null ? D.cols[cfg.date] : null;
+    if (dc && dc.type === 'data' && mc && mrows.length) {
+      const pts = []; let fut = 0;
+      for (const r of mrows) { const t = dc.ts[r.i]; if (t === null) continue; if (t > now) { fut++; continue; } pts.push({ t, v: r.v }); }
+      if (pts.length >= 10) {
+        let tmin = Infinity, tmax = -Infinity; for (const p of pts) { if (p.t < tmin) tmin = p.t; if (p.t > tmax) tmax = p.t; }
+        const spanDays = (tmax - tmin) / 864e5;
+        const gran = spanDays >= 90 ? 'mês' : spanDays >= 21 ? 'semana' : 'dia';
+        const keyF = t => { const d = new Date(t); return gran === 'mês' ? d.getUTCFullYear() * 12 + d.getUTCMonth() : gran === 'semana' ? Math.floor(t / 864e5 + 3) / 7 | 0 : Math.floor(t / 864e5); };
+        const startF = k => gran === 'mês' ? Date.UTC(Math.floor(k / 12), k % 12, 1) : gran === 'semana' ? (k * 7 - 3) * 864e5 : k * 864e5;
+        const endF = k => gran === 'mês' ? Date.UTC(Math.floor(k / 12), k % 12 + 1, 1) - 1 : gran === 'semana' ? startF(k) + 7 * 864e5 - 1 : startF(k) + 864e5 - 1;
+        const tol = gran === 'mês' ? 3 * 864e5 : gran === 'semana' ? 2 * 864e5 : 0;
+        const k0 = keyF(tmin), k1 = keyF(tmax), mp = new Map();
+        for (const p of pts) { const k = keyF(p.t); if (!mp.has(k)) mp.set(k, []); mp.get(k).push(p.v); }
+        const periods = []; let empty = 0;
+        for (let k = k0; k <= k1; k++) {
+          const v = mp.get(k) || []; if (!v.length) empty++;
+          const partial = (k === k0 && tmin > startF(k) + tol) || (k === k1 && tmax < endF(k) - 864e5 + 1 - tol);
+          periods.push({ k, start: startF(k), n: v.length, sum: sum(v), mean: v.length ? mean(v) : NaN, partial });
+        }
+        const full = periods.filter(p => !p.partial);
+        const T = { gran, periods, nFull: full.length, nPartial: periods.length - full.length, future: fut, empty, tmin, tmax, nPts: pts.length };
+        if (full.length >= 6) {
+          const fit = ols(full.map(p => p.sum));
+          T.fit = { ...fit, ci: fisherCI(fit.r, full.length) };
+          const f3 = full.slice(0, 3), l3 = full.slice(-3);
+          const agg = (a, key) => mean(a.map(p => p[key]));
+          T.cmp = { sumFirst: agg(f3, 'sum'), sumLast: agg(l3, 'sum'), nFirst: agg(f3, 'n'), nLast: agg(l3, 'n'), meanFirst: mean(f3.filter(p => p.n).map(p => p.mean)), meanLast: mean(l3.filter(p => p.n).map(p => p.mean)) };
+        }
+        A.trend = T;
+      }
+    }
+
+    // correlações
+    A.corr = null;
+    const cand = D.cols.filter(c => c.type === 'numérica').map(c => { let n = 0; const s = []; for (const i of base) if (c.num[i] !== null) { n++; s.push(c.num[i]); } return { c, n, sd: sd(s) }; }).filter(x => x.n >= 10 && x.sd > 0).sort((a, b) => b.n - a.n).slice(0, 8);
+    if (cand.length >= 2) {
+      const names = cand.map(x => x.c.name), pairs = [];
+      const M = names.map(() => names.map(() => null));
+      for (let a = 0; a < cand.length; a++) for (let b = a + 1; b < cand.length; b++) {
+        const x = [], y = [];
+        for (const i of base) { const p = cand[a].c.num[i], q = cand[b].c.num[i]; if (p !== null && q !== null) { x.push(p); y.push(q); } }
+        if (x.length < 10) continue;
+        const r = pearson(x, y), rs = pearson(ranks(x), ranks(y));
+        if (!isFinite(r) || !isFinite(rs)) continue;
+        const e = { a: names[a], b: names[b], n: x.length, r, rs, ci: fisherCI(r, x.length) };
+        pairs.push(e); M[a][b] = M[b][a] = e;
+      }
+      A.corr = { names, M, pairs: pairs.sort((p, q) => Math.abs(q.rs) - Math.abs(p.rs)) };
+    }
+
+    // ausência por grupo (coluna com mais ausências × 1ª dimensão)
+    A.missByGroup = null;
+    const worst = [...A.cols].filter(c => c.missingPct >= .05 && c.type !== 'vazia').sort((a, b) => b.missingPct - a.missingPct)[0];
+    if (worst) {
+      const wc = D.cols.find(c => c.name === worst.name);
+      for (const dcol of D.cols.filter(c => c.type === 'categórica' && c.name !== worst.name)) {
+        const g = new Map();
+        for (const i of base) { if (isMissing(dcol.raw[i])) continue; const k = norm(dcol.raw[i]); if (!g.has(k)) g.set(k, { l: String(dcol.raw[i]).trim(), n: 0, m: 0 }); const e = g.get(k); e.n++; if (isMissing(wc.raw[i])) e.m++; }
+        const list = [...g.values()].filter(e => e.n >= 20).map(e => ({ label: e.l, n: e.n, miss: e.m, rate: e.m / e.n }));
+        if (list.length >= 2) {
+          list.sort((a, b) => b.rate - a.rate);
+          const gap = list[0].rate - list[list.length - 1].rate;
+          if (!A.missByGroup || gap > A.missByGroup.gap) A.missByGroup = { col: worst.name, dim: dcol.name, hi: list[0], lo: list[list.length - 1], gap };
+        }
+      }
+    }
+
+    A.issues = issues.sort((a, b) => ({ alta: 0, 'média': 1, baixa: 2 }[a.sev] - { alta: 0, 'média': 1, baixa: 2 }[b.sev]));
+    return A;
+  }
+
+  return { parseCSV, parseNum, buildDataset, prepare, findColumn, uniqueNames, analyze, describe, isMissing, norm, quantile, pearson, ranks, fences, ols, fisherCI };
+})();
+if (typeof module !== 'undefined') module.exports = Engine;
+
+</script>
+<script>
+/* Insights, limitações e dados de exemplo. Cada insight só usa números calculados em Engine.analyze. */
+const Insights = (() => {
+  const nf = (x, d = 0) => (x == null || !isFinite(x)) ? '–' : x.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const num = x => { if (x == null || !isFinite(x)) return '–'; const a = Math.abs(x); return nf(x, a >= 1000 ? 0 : a >= 10 ? 1 : 2); };
+  const pct = (x, d = 1) => (x == null || !isFinite(x)) ? '–' : nf(x * 100, d) + '%';
+
+  const CTX = {
+    geral: { nome: 'Geral', metric: 'a métrica', grupo: 'investigar com a área responsável o que diferencia o grupo de melhor resultado (processo, mix, público ou período) antes de replicar qualquer prática', conc: 'avaliar o risco de depender de poucos grupos e definir um acompanhamento específico para eles', tend: 'acompanhar o indicador por período e confirmar com a área responsável o que mudou entre o início e o fim da série', dec: 'decisões de gestão' },
+    vendas: { nome: 'Vendas e comercial', metric: 'a receita', grupo: 'revisar preço, desconto, mix de produtos e abordagem comercial do grupo de melhor resultado e testar, em escala pequena, o que for replicável', conc: 'mapear o risco de concentração da carteira e definir metas de diversificação ou retenção para os grupos dominantes', tend: 'separar volume (número de vendas) de ticket médio e confirmar com o time comercial campanhas, mudanças de preço e sazonalidade do período', dec: 'decisões comerciais' },
+    financeiro: { nome: 'Financeiro', metric: 'o valor', grupo: 'conciliar as diferenças entre grupos com a contabilidade e verificar critérios de lançamento antes de tirar conclusões de desempenho', conc: 'avaliar exposição a poucos grupos (clientes, contas ou centros de custo) e definir limites de acompanhamento', tend: 'validar com a contabilidade eventos extraordinários e regime de competência dos períodos comparados', dec: 'decisões financeiras' },
+    marketing: { nome: 'Marketing', metric: 'o resultado', grupo: 'comparar custo, público e criativo dos canais ou campanhas de melhor resultado e testar a diferença com experimento controlado', conc: 'verificar a dependência de poucos canais ou campanhas e planejar testes em canais subexplorados', tend: 'cruzar a série com o calendário de campanhas e verificar mudanças de rastreamento antes de interpretar a variação', dec: 'decisões de investimento em marketing' },
+    operacoes: { nome: 'Operações e logística', metric: 'o indicador', grupo: 'observar o processo, a equipe e as condições operacionais do grupo de melhor resultado antes de padronizar', conc: 'checar gargalos e dependência de poucas unidades, rotas ou fornecedores', tend: 'confirmar mudanças de processo, capacidade e calendário que coincidam com a variação', dec: 'decisões operacionais' },
+    rh: { nome: 'Pessoas (RH)', metric: 'o indicador', grupo: 'investigar fatores organizacionais (gestão, função, local) antes de qualquer ação individual; evitar comparar pessoas sem contexto', conc: 'verificar se poucas áreas concentram o fenômeno e priorizar conversas qualitativas com elas', tend: 'validar mudanças de política, contratação e calendário que coincidam com a variação', dec: 'decisões de pessoas' }
+  };
+
+  const conf = n => n >= 200 ? { lvl: 'maior', why: `n = ${nf(n)}; amostra grande para esta análise` } : n >= 30 ? { lvl: 'moderada', why: `n = ${nf(n)}; amostra média, margens de erro relevantes` } : { lvl: 'baixa', why: `n = ${nf(n)}; amostra pequena, resultado muito instável` };
+
+  function build(D, A) {
+    const cx = CTX[A.cfg.ctx] || CTX.geral;
+    const out = [];
+    const m = A.metric, mname = m ? m.name : null;
+    const baseN = A.base.length;
+
+    /* ---- confiabilidade dos dados ---- */
+    const missCols = A.cols.filter(c => c.missingPct >= .05 && c.type !== 'vazia').sort((a, b) => b.missingPct - a.missingPct);
+    if (missCols.length) {
+      const ev = missCols.slice(0, 5).map(c => `${c.name}: ${nf(c.missing)} de ${nf(A.N)} linhas sem valor (${pct(c.missingPct)})`);
+      const facts = ['Os cálculos de cada coluna usam apenas as linhas preenchidas; o n válido de cada uma aparece na aba Métricas.'];
+      const hyp = [];
+      if (A.missByGroup && A.missByGroup.gap >= .1) {
+        const g = A.missByGroup;
+        ev.push(`Em "${g.col}", a ausência é de ${pct(g.hi.rate)} em "${g.hi.label}" (n=${nf(g.hi.n)}) e ${pct(g.lo.rate)} em "${g.lo.label}" (n=${nf(g.lo.n)}), por "${g.dim}".`);
+        facts.push(`A taxa de ausência de "${g.col}" difere entre grupos de "${g.dim}" (${nf(g.gap * 100, 1)} pontos percentuais).`);
+        hyp.push('A ausência pode estar ligada a um processo de coleta ou sistema de origem específico desse grupo. Não foi testado.');
+      } else hyp.push('Não há evidência aqui de que a ausência seja aleatória. Ela pode vir de campo opcional, falha de integração ou dado não aplicável. Não foi testado.');
+      const worstC = missCols[0];
+      out.push({ id: 'ausentes', sec: 'dados', title: `Dados ausentes em ${missCols.length} coluna(s) relevante(s)`, prio: missCols[0].missingPct >= .2 ? 'alta' : 'média', evidence: ev, facts, hyp,
+        impact: `Em "${worstC.name}", ${pct(worstC.missingPct)} das linhas ficam fora do cálculo. Médias e somas dessa coluna descrevem só as linhas preenchidas e podem não representar o conjunto.`,
+        rec: 'Confirmar com a origem dos dados se o campo é opcional e, quando não for, tornar o preenchimento obrigatório. Não preencher (imputar) valores sem um critério validado com a área responsável.',
+        conf: conf(baseN) });
+    }
+
+    if (A.dup.extra || (A.dupId && A.dupId.conflict)) {
+      const ev = [];
+      if (A.dup.extra) ev.push(`${nf(A.dup.extra)} linhas idênticas a outra anterior (${pct(A.dup.pct)} de ${nf(A.dup.of || A.N)}). Linhas do arquivo: ${A.dup.rows.join(', ')}${A.dup.extra > A.dup.rows.length ? '…' : ''}.`);
+      if (A.dupId) ev.push(`Identificador "${A.dupId.col}": ${nf(A.dupId.keys)} valores repetidos, dos quais ${nf(A.dupId.conflict)} com conteúdo diferente entre as linhas.`);
+      const removed = !!A.dup.removed;
+      let impact = removed ? `As ${nf(A.dup.extra)} duplicatas idênticas foram removidas do conjunto: todos os números deste relatório já as excluem. ` : (A.dup.extra ? 'As duplicatas continuam incluídas nos cálculos (a exclusão está desligada). ' : '');
+      if (m && A.dup.extra) {
+        let s = null;
+        if (removed) s = A.pre.dupMetricSum;
+        else {
+          const mc = D.cols.find(c => c.name === mname); const seen = new Set(); s = 0;
+          for (let i = 0; i < D.nRows; i++) { const k = D.cols.map(c => String(c.raw[i] ?? '').trim()).join('\u0001'); if (seen.has(k)) { if (mc.num[i] !== null) s += mc.num[i]; } else seen.add(k); }
+        }
+        if (s != null) { const tot = removed ? m.all.sum : m.all.sum - s; impact += `Somadas, essas linhas valem ${num(s)} em "${mname}"${tot > 0 ? ` (${pct(s / tot)} do total sem duplicatas)` : ''}.`; }
+      }
+      out.push({ id: 'duplicatas', sec: 'dados', title: 'Registros duplicados', prio: A.dup.pct >= .05 || (A.dupId && A.dupId.conflict) ? 'alta' : 'média', evidence: ev,
+        facts: ['Linhas com exatamente os mesmos valores em todas as colunas aparecem mais de uma vez.', ...(A.dupId && A.dupId.conflict ? ['Há identificadores iguais com dados diferentes, o que indica conflito de cadastro, não só repetição.'] : [])],
+        hyp: ['Pode ser carga duplicada ou exportação repetida. Também pode ser repetição legítima, se o arquivo não tiver identificador único. Não dá para distinguir só com estes dados.'],
+        impact, rec: removed ? 'Confirmar com a origem se as linhas repetidas são legítimas. Se não forem, corrigir a carga na fonte. Mantenha a exclusão ligada até a confirmação.' : 'Confirmar com a origem se as linhas repetidas são legítimas. Se não forem, ligue "Excluir linhas duplicadas idênticas" para tirá-las dos cálculos e corrija a carga na fonte.', conf: conf(A.N) });
+    }
+
+    const varIssues = A.issues.filter(i => i.kind === 'categorias inconsistentes');
+    if (varIssues.length) {
+      const ev = []; let aff = 0;
+      for (const v of varIssues) for (const g of v.variants.slice(0, 3)) ev.push(`${v.col}: ${g.forms.map(f => `"${f.v}" (${nf(f.n)})`).join(' · ')}`);
+      for (const v of varIssues) aff += v.count;
+      out.push({ id: 'variacoes', sec: 'dados', title: 'Mesma categoria escrita de formas diferentes', prio: 'média', evidence: ev,
+        facts: ['Os valores acima diferem só em maiúsculas, acentos ou espaços e foram agrupados como uma única categoria nas análises de grupo deste app.'],
+        hyp: ['A origem provavelmente aceita texto livre nesse campo. Não verificado.'],
+        impact: `${nf(aff)} células estão em categorias com mais de uma grafia. Em outra ferramenta que não padronize, cada grafia viraria um grupo separado e fragmentaria totais e comparações.`,
+        rec: 'Padronizar o campo na origem com uma lista de valores permitida. Enquanto isso, conferir que o agrupamento feito aqui corresponde à intenção do negócio.', conf: conf(A.N) });
+    }
+
+    const inc = A.issues.filter(i => ['tipo misto', 'datas inválidas', 'datas futuras', 'negativos', 'estrutura', 'valor-sentinela'].includes(i.kind));
+    if (inc.length) {
+      out.push({ id: 'inconsistencias', sec: 'dados', title: 'Valores inconsistentes ou fora do esperado', prio: inc.some(i => i.sev === 'alta') ? 'alta' : 'média',
+        evidence: inc.slice(0, 8).map(i => `${i.col}: ${i.text}${i.rows ? ` (linhas ${i.rows.join(', ')})` : ''}`),
+        facts: ['Estes valores existem no arquivo. Textos em coluna numérica e datas inválidas não entram nos cálculos da coluna.', 'Valores negativos e datas futuras foram mantidos; datas futuras são ignoradas apenas na série temporal.'],
+        hyp: ['Podem ser erro de digitação, ajuste legítimo (estorno, devolução) ou lançamento antecipado. Só quem conhece o processo pode dizer qual.'],
+        impact: `Afetam ${nf(inc.reduce((s, i) => s + i.count, 0))} células no total. Os cálculos das colunas envolvidas usam só os valores válidos, e a soma pode estar subestimada ou superestimada se esses registros forem relevantes.`,
+        rec: 'Listar as linhas indicadas com a área responsável e classificar cada caso como erro ou evento real antes de corrigir ou excluir.', conf: conf(A.N) });
+    }
+
+    /* ---- achados de negócio ---- */
+    if (m && m.nOut) {
+      const o = A.outliers.find(x => x.col === mname);
+      const ev = [`${nf(m.nOut)} de ${nf(m.all.n)} valores de "${mname}" ficam fora das cercas de Tukey (${num(m.f.low)} a ${num(m.f.high)}).`, `Maiores: ${m.outRows.slice(0, 5).map(r => `${num(r.v)} (linha ${r.row})`).join(', ')}.`,
+        `Média ${num(m.all.mean)} com todos os valores; ${num(m.clean.mean)} sem os atípicos. Mediana: ${num(m.all.median)} e ${num(m.clean.median)}.`];
+      const facts = [`A média muda ${pct(Math.abs(m.all.mean - m.clean.mean) / Math.abs(m.clean.mean || 1))} quando os atípicos saem; a mediana muda ${pct(Math.abs(m.all.median - m.clean.median) / Math.abs(m.clean.median || 1))}.`];
+      if (o && o.shareOfSum != null) facts.push(`Os atípicos somam ${pct(o.shareOfSum)} do total de "${mname}".`);
+      out.push({ id: 'outliers', sec: 'negocio', title: `Valores atípicos em ${mname}`, prio: (o && o.shareOfSum > .1) ? 'alta' : 'média', evidence: ev, facts,
+        hyp: ['Podem ser erro de digitação ou de unidade, ou vendas e eventos legítimos de grande porte. O app não tem como distinguir.', 'Em distribuições assimétricas, o critério de Tukey marca como atípicos valores que são normais para o negócio.'],
+        impact: `As análises de grupo e tendência estão usando ${A.cfg.excludeOut ? 'a base sem' : 'a base com'} esses ${nf(m.nOut)} valores${o && o.shareOfSum != null ? `, que pesam ${pct(o.shareOfSum)} do total` : ''}. A escolha muda os resultados.`,
+        rec: `Validar com a fonte os ${Math.min(5, m.nOut)} maiores registros (linhas ${m.outRows.slice(0, 5).map(r => r.row).join(', ')}) antes de excluir. Relatar sempre mediana junto com a média.`, conf: conf(m.all.n) });
+    }
+
+    for (const g of A.groups.slice(0, 3)) {
+      const L = g.list; const eligible = L.filter(x => x.n >= 10);
+      if (g.nonNeg && L.length >= 4 && L[0].share != null) {
+        const bySum = [...L].sort((a, b) => b.sum - a.sum);
+        const top1 = bySum[0], k = Math.max(1, Math.ceil(L.length * .2)); const topK = bySum.slice(0, k).reduce((s, x) => s + x.sum, 0) / (bySum.reduce((s, x) => s + x.sum, 0) || 1);
+        if (top1.share >= .4 || topK >= .8) {
+          out.push({ id: 'conc-' + g.dim, sec: 'negocio', title: `Concentração de ${mname} por ${g.dim}`, prio: top1.share >= .5 ? 'alta' : 'média',
+            evidence: [`"${top1.label}" responde por ${pct(top1.share)} da soma de "${mname}" (n=${nf(top1.n)} linhas).`, `${k === 1 ? 'O maior' : 'Os ' + k + ' maiores'} de ${L.length} grupos ${k === 1 ? 'soma' : 'somam'} ${pct(topK)}.`],
+            facts: ['A soma está distribuída de forma desigual entre os grupos, na base de cálculo atual.'],
+            hyp: ['A concentração pode refletir o tamanho real de cada grupo no negócio ou diferenças de cobertura dos dados. Não testado.'],
+            impact: `Uma variação em "${top1.label}" move a soma total de forma desproporcional: cada 10% de variação ali equivale a ${pct(top1.share * .1)} do total, por aritmética.`,
+            rec: `Para ${cx.dec}: ${cx.conc}.`, conf: conf(A.nUsed) });
+        }
+      }
+      if (eligible.length >= 2) {
+        const hi = eligible[0], lo = eligible[eligible.length - 1];
+        const sep = hi.ci && lo.ci && lo.ci[1] < hi.ci[0];
+        const gap = hi.mean - lo.mean;
+        out.push({ id: 'grupo-' + g.dim, sec: 'negocio', title: `Média de ${mname} difere entre grupos de ${g.dim}`, prio: sep ? 'alta' : 'baixa',
+          evidence: [`"${hi.label}": média ${num(hi.mean)}, mediana ${num(hi.median)}, n=${nf(hi.n)}, IC95% aprox. ${num(hi.ci[0])} a ${num(hi.ci[1])}.`, `"${lo.label}": média ${num(lo.mean)}, mediana ${num(lo.median)}, n=${nf(lo.n)}, IC95% aprox. ${num(lo.ci[0])} a ${num(lo.ci[1])}.`, `Diferença entre médias: ${num(gap)}. Grupos comparados: ${eligible.length} com n ≥ 10 (de ${L.length}).`],
+          facts: [sep ? 'Os intervalos de confiança aproximados não se sobrepõem: a diferença observada é maior do que a variação esperada só por amostragem, nesta base.' : 'Os intervalos de confiança aproximados se sobrepõem: com esta amostra, não dá para descartar que a diferença seja acaso.'],
+          hyp: ['Uma diferença entre grupos não mostra o que a causa. Pode vir de mix de produtos, porte do cliente, período ou outras variáveis não incluídas. Nenhuma foi testada.', ...(m && m.nOut && !A.cfg.excludeOut ? [`A média é sensível aos ${nf(m.nOut)} valores atípicos mantidos na base. Compare também as medianas (${hi.label}: ${num(hi.median)}; ${lo.label}: ${num(lo.median)}) ou ligue a exclusão de atípicos.`] : []), ...(g.lost ? [`${nf(g.lost)} linhas sem "${g.dim}" ficaram fora desta comparação.`] : [])],
+          impact: `Cenário aritmético, não previsão: se as ${nf(lo.n)} linhas de "${lo.label}" tivessem a média de "${hi.label}", a soma seria ${num(gap * lo.n)} maior. Isso só se sustenta se a diferença for causada pelo grupo, o que não foi demonstrado.`,
+          rec: `Para ${cx.dec}: ${cx.grupo}.`, conf: conf(Math.min(hi.n, lo.n)) });
+      }
+    }
+
+    if (A.trend && A.trend.fit) {
+      const T = A.trend, f = T.fit, c = T.cmp;
+      const sig = f.ci && (f.ci[0] > 0 || f.ci[1] < 0);
+      const dir = f.slope > 0 ? 'cresce' : 'cai';
+      const ev = [`${T.nFull} ${T.gran === 'mês' ? 'meses' : T.gran === 'semana' ? 'semanas' : 'dias'} completos analisados (${T.nPartial} parcial(is) excluído(s)${T.empty ? `, ${T.empty} sem registros contado(s) como zero` : ''}).`,
+        `Soma por ${T.gran}: média dos 3 primeiros ${num(c.sumFirst)}; dos 3 últimos ${num(c.sumLast)} (${c.sumFirst ? ((c.sumLast / c.sumFirst - 1) * 100 >= 0 ? '+' : '') + nf((c.sumLast / c.sumFirst - 1) * 100, 1) + '%' : '–'}).`,
+        `Registros por ${T.gran}: ${num(c.nFirst)} → ${num(c.nLast)}. Valor médio por registro: ${num(c.meanFirst)} → ${num(c.meanLast)}.`,
+        `Inclinação linear: ${f.slope >= 0 ? '+' : ''}${num(f.slope)} por ${T.gran}; r = ${nf(f.r, 2)}${f.ci ? ` (IC95% ${nf(f.ci[0], 2)} a ${nf(f.ci[1], 2)})` : ''}.`];
+      out.push({ id: 'tendencia', sec: 'negocio', title: sig ? `${mname} ${dir} ao longo do tempo` : `Sem tendência linear clara em ${mname}`, prio: sig ? 'alta' : 'baixa', evidence: ev,
+        facts: [sig ? `A soma por ${T.gran} ${dir} de forma consistente com uma reta (o IC95% de r não inclui zero).` : 'O IC95% de r inclui zero: com este número de períodos, não dá para distinguir tendência de oscilação.', 'A comparação acima separa efeito de volume (registros) e de valor médio por registro.'],
+        hyp: [`Variações podem vir de sazonalidade, campanhas, mudanças de preço ou de cadastro. Com ${T.nFull} períodos não é possível separar sazonalidade de tendência.`],
+        impact: `Entre o início e o fim da série, a soma por ${T.gran} passou de ${num(c.sumFirst)} para ${num(c.sumLast)}. Extrapolar essa reta para períodos futuros não é recomendado sem validar o que mudou.`,
+        rec: `Para ${cx.dec}: ${cx.tend}.`, conf: { lvl: T.nFull >= 24 ? 'moderada' : 'baixa', why: `${T.nFull} períodos completos; poucas observações para tendência` } });
+    }
+
+    if (A.corr) {
+      const strong = A.corr.pairs.filter(p => Math.abs(p.rs) >= .5 && Math.abs(p.r) >= .5 && Math.sign(p.r) === Math.sign(p.rs) && p.n >= 30).slice(0, 3);
+      if (strong.length) {
+        out.push({ id: 'correlacao', sec: 'negocio', title: 'Variáveis numéricas que andam juntas', prio: 'média',
+          evidence: strong.map(p => `${p.a} × ${p.b}: Pearson ${nf(p.r, 2)}${p.ci ? ` (IC95% ${nf(p.ci[0], 2)} a ${nf(p.ci[1], 2)})` : ''}, Spearman ${nf(p.rs, 2)}, n=${nf(p.n)}.`),
+          facts: ['Nestas linhas, os valores dessas colunas variam juntos (mesma direção para Pearson e Spearman).'],
+          hyp: ['Correlação não é causalidade. Uma coluna pode ser calculada a partir da outra (relação mecânica), ou ambas dependerem de um terceiro fator. Nenhuma dessas explicações foi testada.', ...(strong.some(p => Math.abs(p.r) > .98) ? ['Correlação acima de 0,98 sugere redundância ou coluna derivada.'] : [])],
+          impact: 'Serve para escolher o que investigar. Não sustenta, por si só, a decisão de mexer em uma variável para mudar a outra.',
+          rec: 'Antes de agir, checar se as colunas são definidas uma pela outra. Se não forem, testar a relação com um experimento ou com comparação controlada por outras variáveis.', conf: conf(Math.min(...strong.map(p => p.n))) });
+      }
+    }
+    return out;
+  }
+
+  function limitations(D, A) {
+    const L = [];
+    const pre = A.pre, parts = [];
+    if (A.dup.removed) parts.push(`${nf(A.dup.extra)} duplicatas idênticas removidas`);
+    if (pre.filterRemoved) parts.push(`${nf(pre.filterRemoved)} linhas removidas por filtro de vazios`);
+    L.push(`Base de cálculo: ${nf(A.N)} de ${nf(pre.rawN)} linhas lidas${parts.length ? ` (${parts.join('; ')})` : ''}${A.metric ? `; para "${A.metric.name}", ${nf(A.nUsed)} linhas válidas${A.cfg.excludeOut ? `, com ${nf(A.metric.nOut)} atípicos excluídos` : ', atípicos mantidos'}` : ''}.`);
+    if (pre.dropped.length) L.push(`Colunas excluídas a pedido: ${pre.dropped.join(', ')}. Elas não entram em nenhuma análise, nem na checagem de duplicatas.`);
+    if (!A.dup.removed && A.dup.extra) L.push(`${nf(A.dup.extra)} duplicatas idênticas foram mantidas nos cálculos (exclusão desligada).`);
+    L.push('Os resultados descrevem somente o arquivo carregado. Nenhum benchmark externo, meta ou dado de mercado foi usado ou inventado.');
+    L.push('Todas as relações apresentadas são associações observadas. Nada neste relatório demonstra causa e efeito.');
+    L.push('Valores ausentes são reconhecidos por: vazio, null, NA, N/A, NaN, -, --, n/d, s/d, none, nulo, #N/A. Outro código de ausência seria tratado como valor.');
+    L.push('Números aceitam formato brasileiro (1.234,56) e internacional (1,234.56). Um valor como "1.234" é lido como 1,234, não como 1234.');
+    L.push('Datas com dia e mês ambíguos (ex.: 03/04/2025) seguem o formato indicado pelas outras datas da coluna; sem indício, assume-se dia/mês.');
+    L.push('Outliers usam a regra de Tukey (1,5 × amplitude interquartílica). É um critério estatístico, não um teste de erro.');
+    L.push('Intervalos de confiança de médias usam aproximação normal (n ≥ 10) e os de correlação usam a transformação de Fisher. São indicativos, não testes formais de hipótese.');
+    L.push('Níveis de confiança por tamanho de amostra (menos de 30 baixa, 30 a 199 moderada, 200 ou mais maior) são uma regra prática do app, não um resultado estatístico.');
+    if (D.nRows < 100) L.push(`Amostra pequena (${D.nRows} linhas): estatísticas muito sensíveis a poucos registros.`);
+    if (A.trend) {
+      L.push(`Série temporal agregada por ${A.trend.gran}. Períodos parciais nas pontas (tolerância de ${A.trend.gran === 'mês' ? '3' : '2'} dias) ficam fora da tendência. Datas futuras (${nf(A.trend.future)}) foram ignoradas na série.`);
+      if (A.trend.empty) L.push(`${A.trend.empty} período(s) sem nenhum registro foram tratados como zero.`);
+    } else if (A.cfg.date != null && A.metric) L.push('A série temporal não foi calculada: menos de 10 registros com data válida e métrica.');
+    else L.push('Sem coluna de data selecionada, não há análise temporal.');
+    const excl = D.cols.filter(c => c.type === 'texto' || c.type === 'vazia' || c.type === 'id');
+    if (excl.length) L.push(`Colunas sem análise estatística (texto livre, identificador ou vazias): ${excl.map(c => c.name).join(', ')}.`);
+    const hi = D.cols.filter(c => c.type === 'categórica').length - A.groups.length;
+    if (hi > 0) L.push(`${hi} coluna(s) categórica(s) não geraram comparação de grupos (menos de 2 ou mais de 30 categorias, ou sem métrica).`);
+    if (A.corr && A.corr.names.length === 8) L.push('A matriz de correlação considera as 8 colunas numéricas com mais valores preenchidos.');
+    L.push('O que um dado ausente, atípico ou inconsistente significa para o negócio só pode ser confirmado com quem conhece o processo de origem.');
+    return L;
+  }
+
+  /* ---------- dados de exemplo (sintéticos, seed fixa) ---------- */
+  function makeSample() {
+    let s = 20261029; const r = () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    const wpick = a => { let x = r() * a.reduce((q, y) => q + y[1], 0); for (const [v, w] of a) { x -= w; if (x <= 0) return v; } return a[0][0]; };
+    const brl = x => x.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const prods = [['Plano Básico', 89.9], ['Plano Pro', 249], ['Plano Equipe', 590], ['Módulo Extra', 39.9], ['Treinamento', 1200]];
+    const rows = [['id_pedido', 'data_pedido', 'regiao', 'canal', 'produto', 'segmento', 'quantidade', 'preco_unitario', 'desconto_pct', 'receita']];
+    const start = Date.UTC(2025, 0, 1), end = Date.UTC(2026, 8, 30), span = (end - start) / 864e5;
+    for (let n = 1; n <= 500; n++) {
+      const day = Math.floor(Math.sqrt(r()) * span), d = new Date(start + day * 864e5);
+      const canal = wpick([['Online', 5], ['Loja', 3], ['Parceiro', 2]]);
+      const [prod, price] = prods[Math.floor(r() * prods.length)];
+      const q = Math.max(1, Math.round((canal === 'Parceiro' ? 4 : canal === 'Loja' ? 2 : 1.5) + (r() - .4) * 3));
+      const disc = Math.min(30, Math.round(q * 1.5 + r() * 8));
+      let rev = q * price * (1 - disc / 100) * (.97 + r() * .06);
+      let reg = wpick([['Sudeste', 42], ['Sul', 22], ['Nordeste', 22], ['Centro-Oeste', 14]]);
+      const v = r(); if (reg === 'Sudeste' && v < .12) reg = 'sudeste'; else if (reg === 'Sul' && v < .1) reg = 'SUL '; if (r() < .02) reg = '';
+      let dstr = `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}/${d.getUTCFullYear()}`;
+      let qs = String(q), ds = r() < .07 ? (r() < .4 ? 'N/A' : '') : String(disc);
+      let rs = brl(rev);
+      if (n % 83 === 0) rs = brl(rev * 14);
+      if (n === 57 || n === 301) qs = 'dez';
+      if (n === 140 || n === 410 || n === 222) qs = '-1';
+      if (n === 150 || n === 377) dstr = '15/03/2027';
+      rows.push([`P${String(n).padStart(5, '0')}`, dstr, reg, canal, prod, wpick([['PME', 5], ['Enterprise', 2], ['Autônomo', 3]]), qs, brl(price), ds, rs]);
+    }
+    for (const i of [12, 50, 133, 201, 260, 333, 389, 421, 470]) rows.push([...rows[i]]);
+    return rows.map(x => x.map(c => /[;"\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c).join(';')).join('\n');
+  }
+
+  function reportText(D, A, items, meta) {
+    const L = [];
+    L.push('RELATÓRIO DE DIAGNÓSTICO DE DADOS');
+    L.push(`Arquivo: ${meta.fileName}${meta.isSample ? ' (exemplo sintético)' : ''}`);
+    L.push(`Contexto: ${(CTX[A.cfg.ctx] || CTX.geral).nome}${meta.objective ? ' | Objetivo: ' + meta.objective : ''}`);
+    L.push('');
+    L.push('LIMITAÇÕES E EXCLUSÕES');
+    limitations(D, A).forEach(x => L.push('- ' + x));
+    L.push('');
+    L.push('INSIGHTS');
+    items.forEach((it, i) => {
+      L.push(`${i + 1}. ${it.title} [prioridade ${it.prio}; confiança ${it.conf.lvl}: ${it.conf.why}]`);
+      L.push('  Evidência:'); it.evidence.forEach(x => L.push('   - ' + x));
+      L.push('  Fatos observados:'); it.facts.forEach(x => L.push('   - ' + x));
+      L.push('  Hipóteses (não testadas):'); it.hyp.forEach(x => L.push('   - ' + x));
+      L.push('  Impacto potencial: ' + it.impact);
+      L.push('  Recomendação prática: ' + it.rec);
+      L.push('');
+    });
+    return L.join('\n');
+  }
+
+  return { build, limitations, makeSample, reportText, CTX, nf, num, pct };
+})();
+if (typeof module !== 'undefined') module.exports = Insights;
+
+</script>
+<script>
+(function(){
+'use strict';
+const E=Engine, I=Insights, nf=I.nf, num=I.num, pct=I.pct;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const COL={cyan:'#55C7E8',green:'#35C995',amber:'#FFBE45',violet:'#7278F5'};
+const S={headers:null,rows:null,ragged:0,fileName:'',isSample:false,D:null,A:null,items:[],tab:'insights',wb:null,notes:[],rules:[],rowColors:new Map(),dataLimit:50,metricName:null,dateName:null,popRow:null,prep:null};
+
+/* ---------- leitura de arquivos ---------- */
+function isoFromDate(d){const t=Math.round(d.getTime()/60000)*60000,x=new Date(t);return x.getUTCFullYear()+'-'+String(x.getUTCMonth()+1).padStart(2,'0')+'-'+String(x.getUTCDate()).padStart(2,'0')}
+function loadMatrix(m,name,sample,notes){
+  m=m.filter(r=>r&&r.some(x=>x!==null&&x!==undefined&&String(x).trim()!==''));
+  if(m.length<2){showMsg('O arquivo precisa ter um cabeçalho e ao menos uma linha de dados.');return}
+  const head=m[0].map(x=>x==null?'':String(x)), w=head.length;
+  const rows=m.slice(1); const ragged=rows.filter(r=>r.length!==w).length;
+  S.headers=head;S.rows=rows;S.ragged=ragged;S.fileName=name;S.isSample=!!sample;S.notes=notes||[];
+  S.rules=[];S.rowColors=new Map();S.dataLimit=50;S.metricName=null;S.dateName=null;setFMsg('');
+  $('colList').innerHTML=E.uniqueNames(head).map(n=>`<option value="${esc(n)}">`).join('');
+  if(run()) $('sourceSettings').open=false;
+}
+function pickDefaults(D,doMetric,doDate){
+  if(doMetric){
+    const nums=D.cols.filter(c=>c.type==='numérica');
+    const prefs=[/(receita|faturamento|revenue|sales|venda)/i,/(valor|total|amount)/i,/(custo|despesa|cost|expense)/i,/(preco|preço|price)/i];
+    let m=null;for(const r of prefs){m=nums.find(c=>r.test(c.name));if(m)break}
+    m=m||nums[0];S.metricName=m?m.name:'';
+  }
+  if(doDate){const d=D.cols.find(c=>c.type==='data');S.dateName=d?d.name:''}
+}
+function readFile(f){
+  const name=f.name,ext=(name.split('.').pop()||'').toLowerCase();
+  const fr=new FileReader();
+  fr.onerror=()=>showMsg('Não foi possível ler o arquivo.');
+  if(ext==='xlsx'||ext==='xls'){
+    if(typeof XLSX==='undefined'){showMsg('A biblioteca de Excel não carregou. Salve a planilha como CSV e tente de novo.');return}
+    fr.onload=()=>{try{
+      const wb=XLSX.read(new Uint8Array(fr.result),{type:'array',cellDates:true});S.wb=wb;S.wbName=name;
+      const sh=$('sheetSel');sh.innerHTML=wb.SheetNames.map(n=>`<option>${esc(n)}</option>`).join('');$('sheetWrap').hidden=wb.SheetNames.length<2;
+      loadSheet(wb.SheetNames[0]);
+    }catch(e){showMsg('Não foi possível interpretar a planilha: '+e.message)}};
+    fr.readAsArrayBuffer(f);
+  }else{
+    $('sheetWrap').hidden=true;
+    fr.onload=()=>{
+      let text;const buf=fr.result;
+      try{text=new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(e){text=new TextDecoder('windows-1252').decode(buf)}
+      const p=E.parseCSV(text);loadMatrix(p.rows,name,false,[`Delimitador detectado: ${p.delim==='\t'?'tabulação':'"'+p.delim+'"'}`]);
+    };
+    fr.readAsArrayBuffer(f);
+  }
+}
+function loadSheet(n){
+  const ws=S.wb.Sheets[n];
+  const m=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:false}).map(r=>r.map(v=>v instanceof Date?isoFromDate(v):v));
+  loadMatrix(m,S.wbName+' · '+n,false,[]);
+}
+function loadSample(){const p=E.parseCSV(I.makeSample());loadMatrix(p.rows,'exemplo_vendas.csv',true,[])}
+function showMsg(t){const m=$('msg');m.hidden=!t;m.className=t?'banner err':'';m.innerHTML=t?`<b>Atenção</b><span>${esc(t)}</span>`:''}
+
+/* ---------- controles ---------- */
+function fillSelects(){
+  const D=S.D;
+  $('ctx').innerHTML=Object.entries(I.CTX).map(([k,v])=>`<option value="${k}" ${k===S.ctx?'selected':''}>${esc(v.nome)}</option>`).join('');
+  const nums=D.cols.filter(c=>c.type==='numérica');
+  $('metricSel').innerHTML=nums.length?nums.map(c=>`<option value="${esc(c.name)}" ${c.name===S.metricName?'selected':''}>${esc(c.name)}</option>`).join(''):'<option value="">(nenhuma coluna numérica)</option>';
+  const dts=D.cols.filter(c=>c.type==='data');
+  $('dateSel').innerHTML='<option value="">(sem análise temporal)</option>'+dts.map(c=>`<option value="${esc(c.name)}" ${c.name===S.dateName?'selected':''}>${esc(c.name)}</option>`).join('');
+}
+S.ctx='vendas';
+function colIdx(D,name){return name?D.cols.findIndex(c=>c.name===name):-1}
+function setFMsg(t,bad){const m=$('fMsg');m.textContent=t||'';m.className='sub'+(bad?' bad':'')}
+
+/* ---------- execução ---------- */
+function run(){
+  const ctx=$('ctx').value||S.ctx,dedupe=$('exDup').checked,exOut=$('exOut').checked;
+  let prep,D;
+  for(let pass=0;pass<3;pass++){
+    prep=E.prepare(S.headers,S.rows,S.ragged,{rules:S.rules,dedupe,metricName:S.metricName});
+    if(!prep.headers.length){showMsg('Os filtros excluíram todas as colunas. Remova algum filtro.');return false}
+    if(!prep.rows.length){showMsg('Os filtros removeram todas as linhas. Remova algum filtro.');return false}
+    D=E.buildDataset(prep.headers,prep.rows,prep.ragged,prep.rowNos);
+    const mOk=S.metricName===''||(S.metricName!==null&&D.cols.some(c=>c.name===S.metricName&&c.type==='numérica'));
+    const dOk=S.dateName===''||(S.dateName!==null&&D.cols.some(c=>c.name===S.dateName&&c.type==='data'));
+    if(mOk&&dOk)break;
+    pickDefaults(D,!mOk,!dOk);
+  }
+  showMsg('');
+  $('welcome').hidden=true; $('copyBtn').disabled=false;
+  $('datasetStatus').textContent=S.fileName;
+  S.ctx=ctx;S.D=D;S.prep=prep;
+  fillSelects();
+  const mi=colIdx(D,S.metricName),di=colIdx(D,S.dateName);
+  S.A=E.analyze(D,{ctx,metric:mi>=0?mi:null,date:di>=0?di:null,excludeDup:dedupe,excludeOut:exOut,pre:prep.pre});
+  S.items=I.build(D,S.A);
+  renderBanner();renderFilters();renderChips();renderTabs();renderView();
+  return true;
+}
+function renderBanner(){
+  const b=$('banner');
+  if(S.isSample){b.hidden=false;b.innerHTML='<b>Exemplo</b><span>Dados fictícios gerados pelo app para demonstração, com problemas plantados de propósito (duplicatas, ausentes, categorias com grafias diferentes, atípicos). Não representam nenhuma empresa. Os achados abaixo descrevem só estes dados.</span>'}
+  else b.hidden=true;
+}
+function renderFilters(){
+  const res=S.prep.pre.rules;
+  $('fList').innerHTML=S.rules.length?S.rules.map((r,k)=>{
+    const x=res[k]||{removed:0},lab=r.action==='drop'?'Coluna excluída':'Linhas vazias removidas';
+    const val=r.action==='drop'?esc(r.col):`${esc(r.col)} · ${nf(x.removed||0)} linha(s)`;
+    return `<div class="chip rule"><div class="tx"><span class="k">${lab}</span><span class="v">${val}</span></div><button type="button" data-rm="${k}" aria-label="Remover o filtro de ${esc(r.col)}">✕</button></div>`;
+  }).join(''):'<span class="sub">Nenhum filtro ativo.</span>';
+}
+function addRule(){
+  if(!S.headers)return;
+  const act=$('fAct').value,r=E.findColumn(E.uniqueNames(S.headers),$('fCol').value);
+  if(r.err){setFMsg(r.err,true);return}
+  if(S.rules.some(x=>x.col===r.name&&x.action===act)){setFMsg('Esse filtro já está ativo.',true);return}
+  S.rules.push({col:r.name,action:act});
+  if(!run()){S.rules.pop();run();setFMsg('Esse filtro removeria todas as linhas ou colunas e não foi aplicado.',true);return}
+  $('fCol').value='';
+  const x=S.prep.pre.rules[S.rules.length-1];
+  setFMsg(act==='drop'?`Coluna "${r.name}" excluída.`:`${nf(x.removed)} linha(s) vazia(s) em "${r.name}" removida(s).`+(r.approx?` (coluna reconhecida como "${r.name}")`:''),false);
+}
+function renderChips(){
+  const A=S.A,D=S.D,m=A.metric,pre=A.pre;
+  let per='–';
+  if(A.trend)per=new Date(A.trend.tmin).toLocaleDateString('pt-BR',{timeZone:'UTC'})+' a '+new Date(A.trend.tmax).toLocaleDateString('pt-BR',{timeZone:'UTC'});
+  const ex=[];
+  if(A.dup.removed)ex.push(`${nf(A.dup.extra)} duplicatas`);
+  if(pre.filterRemoved)ex.push(`${nf(pre.filterRemoved)} linhas vazias`);
+  if(pre.dropped.length)ex.push(`${pre.dropped.length} coluna(s)`);
+  if(A.cfg.excludeOut&&m&&m.nOut)ex.push(`${nf(m.nOut)} atípicos`);
+  const list=[
+    ['Arquivo',S.fileName,''],['Linhas lidas',nf(pre.rawN),''],['Colunas',pre.dropped.length?`${D.cols.length} de ${pre.totalCols}`:nf(D.cols.length),''],
+    ['Base de cálculo',m?`${nf(A.nUsed)} linhas`:nf(A.base.length)+' linhas','hl'],
+    ['Métrica',m?m.name:'(nenhuma)',''],['Exclusões',ex.length?ex.join(' · '):'nenhuma',''],['Período',per,'']
+  ];
+  $('chips').innerHTML=list.map(([k,v,c])=>`<div class="chip ${c}"><span class="k">${k}</span><span class="v">${esc(v)}</span></div>`).join('');
+}
+const TABS=[['insights','Visão executiva'],['qualidade','Qualidade'],['metricas','Padrões e métricas'],['relacoes','Relações'],['limites','Limitações'],['dados','Dados']];
+function renderTabs(){
+  const nIss=S.A.issues.length;
+  $('tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" id="tab-${k}" aria-selected="${S.tab===k}" tabindex="${S.tab===k?0:-1}" aria-controls="view" data-tab="${k}">${l}${k==='insights'?`<span class="tab-n">${S.items.length}</span>`:k==='qualidade'?`<span class="tab-n">${nIss}</span>`:''}</button>`).join('');
+}
+function renderView(){
+  document.querySelectorAll('[data-nav]').forEach(b=>{const active=b.dataset.nav===S.tab;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+  const v=$('view');v.setAttribute('role','tabpanel');v.setAttribute('aria-labelledby','tab-'+S.tab);
+  const f={insights:vDashboard,qualidade:vQualidade,metricas:vMetricas,relacoes:vRelacoes,limites:vLimites,dados:vDados}[S.tab];
+  v.innerHTML=f();
+}
+
+/* ---------- componentes ---------- */
+const li=a=>a.map(x=>`<li>${esc(x)}</li>`).join('');
+function card(it){
+  return `<article class="card"><div class="card-h"><h3>${esc(it.title)}</h3><div class="card-meta"><span class="pill p-${it.prio}"><i></i>Prioridade ${it.prio}</span></div></div>
+  <div class="quad">
+   <div><span class="tag t-ev">Evidência</span><ul>${li(it.evidence)}</ul></div>
+   <div><span class="tag t-fato">Fato observado</span><ul>${li(it.facts)}</ul><span class="tag t-hip" style="margin-top:6px;align-self:flex-start">Hipótese, não testada</span><ul>${li(it.hyp)}</ul></div>
+   <div><span class="tag t-imp">Impacto potencial</span><p>${esc(it.impact)}</p></div>
+   <div><span class="tag t-rec">Recomendação prática</span><p>${esc(it.rec)}</p></div>
+  </div>
+  <div class="conf">Confiança estatística da amostra: <b class="muted">${esc(it.conf.lvl)}</b> · ${esc(it.conf.why)}</div></article>`;
+}
+function vDashboard(){
+  const A=S.A,m=A.metric;
+  let h=`<section class="executive-kpis" aria-label="Indicadores executivos"><div class="kpi"><span>Registros recebidos</span><b>${nf(A.pre.rawN)}</b><small>Arquivo original</small></div><div class="kpi"><span>Base após limpeza</span><b>${nf(A.base.length)}</b><small>Exclusões detalhadas em Métricas</small></div><div class="kpi"><span>Colunas disponíveis</span><b>${nf(S.D.cols.length)}</b><small>Após os filtros aplicados</small></div><div class="kpi"><span>Alertas de qualidade</span><b>${nf(A.issues.length)}</b><small>Verificações que merecem atenção</small></div></section>`;
+  if(m){h+=`<section class="dashboard-charts"><article class="panel stack"><div><span class="eyebrow">Distribuição da métrica</span><h2>${esc(m.name)}</h2><p class="sub">${nf(m.inliers.length)} valores dentro das cercas de Tukey${m.nOut?`; ${nf(m.nOut)} atípicos fora do gráfico`:''}.</p></div>${histSVG(m.inliers,m.name)}<p class="sub">Fonte: ${esc(S.fileName)} · Frequência por faixa de valor</p></article><article class="panel stack"><div><span class="eyebrow">${A.trend?'Evolução temporal':'Leitura estatística'}</span><h2>${A.trend?esc(m.name)+' por '+A.trend.gran:'Amostra e contexto'}</h2></div>${A.trend?timeSVG(A.trend,m.name):`<div class="metric-summary"><b>${nf(A.nUsed)}</b><span>registros utilizados na métrica</span></div><p class="muted">Selecione uma coluna de data válida para explorar a evolução temporal.</p>`}<p class="sub">Fonte: ${esc(S.fileName)}${A.trend?' · Soma por período · Barras tracejadas: períodos parciais':''}</p></article></section>`}
+  return h+vInsights();
+}
+function vInsights(){
+  const d=S.items.filter(i=>i.sec==='dados'),n=S.items.filter(i=>i.sec==='negocio');
+  const obj=$('objective').value.trim();
+  let h='';
+  if(obj)h+=`<div class="note" style="margin-bottom:14px"><b>Objetivo informado:</b> ${esc(obj)}. O app não direciona a análise por este texto: ele só o registra no relatório.</div>`;
+  h+=`<div class="sec-h"><div><h2>Confiabilidade dos dados</h2><p class="sub">O que precisa ser verificado antes de confiar nos números.</p></div></div><div class="cards">${d.length?d.map(card).join(''):'<div class="panel empty">Nenhum problema relevante de qualidade foi encontrado pelas verificações do app. Isso não garante que os dados estejam corretos.</div>'}</div>`;
+  h+=`<div class="sec-h" style="margin-top:22px"><div><h2>Achados de negócio</h2><p class="sub">Cada achado separa o que foi medido do que é hipótese.</p></div></div><div class="cards">${n.length?n.map(card).join(''):'<div class="panel empty">Nenhum achado atingiu os critérios mínimos (tamanho de amostra e sinal). Verifique se há uma métrica numérica selecionada e colunas categóricas ou de data.</div>'}</div>`;
+  return h;
+}
+function missBar(p){return `<div class="bar ${p>=.2?'am':''}" data-tip="${pct(p)} ausentes"><span style="width:${Math.min(100,p*100)}%"></span></div>`}
+function vQualidade(){
+  const A=S.A,D=S.D;
+  const totalMiss=A.cols.reduce((s,c)=>s+c.missing,0),cells=A.N*D.cols.length;
+  let h=`<div class="panel stack"><h2>Visão geral</h2><div class="kv">
+   <div><span>Linhas na base</span><b>${nf(A.N)}</b></div>
+   <div><span>Duplicatas ${A.dup.removed?'removidas':'encontradas'}</span><b>${nf(A.dup.extra)} · ${pct(A.dup.pct)}</b></div>
+   <div><span>Células ausentes</span><b>${pct(cells?totalMiss/cells:0)}</b></div>
+   <div><span>Alertas</span><b>${nf(A.issues.length)}</b></div></div></div>`;
+  h+=`<div class="panel" style="margin-top:14px"><h2 style="margin-bottom:10px">Colunas</h2><div class="scroll"><table><thead><tr><th>Coluna</th><th>Tipo inferido</th><th class="r">Preenchido</th><th>Ausentes</th><th class="r">Únicos</th><th>Observações</th></tr></thead><tbody>`+
+   A.cols.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td class="muted">${c.type}</td><td class="r">${nf(A.N-c.missing)}</td><td style="min-width:130px">${missBar(c.missingPct)}<span class="faint num" style="font-size:12px">${nf(c.missing)} · ${pct(c.missingPct)}</span></td><td class="r">${nf(c.uniq)}</td><td>${c.notes.map(x=>`<span class="pill p-baixa" style="margin:0 4px 4px 0">${esc(x)}</span>`).join('')||'<span class="faint">–</span>'}</td></tr>`).join('')+`</tbody></table></div></div>`;
+  h+=`<div class="panel" style="margin-top:14px"><h2 style="margin-bottom:4px">Alertas por gravidade</h2><p class="sub" style="margin-bottom:8px">Gravidade é uma regra prática do app: depende da proporção de linhas afetadas.</p>`+
+   (A.issues.length?A.issues.map(i=>`<div class="issue"><span class="pill p-${i.sev}"><i></i>${i.sev}</span><div><div class="t"><b>${esc(i.col)}</b> · ${esc(i.kind)}</div><div class="w">${esc(i.text)}${i.rows?` · linhas ${i.rows.join(', ')}`:''}</div>${i.variants?i.variants.slice(0,4).map(v=>`<div class="w">${v.forms.map(f=>`"${esc(f.v)}" (${nf(f.n)})`).join(' · ')}</div>`).join(''):''}</div></div>`).join(''):'<div class="empty">Nenhum alerta.</div>')+`</div>`;
+  h+=`<div class="panel" style="margin-top:14px"><h2 style="margin-bottom:4px">Valores atípicos por coluna numérica</h2><p class="sub" style="margin-bottom:8px">Regra de Tukey, sobre a base sem duplicatas (se a exclusão estiver ligada). Atípico não significa erro.</p>`+
+   (A.outliers.length?`<div class="scroll"><table><thead><tr><th>Coluna</th><th class="r">Cerca inferior</th><th class="r">Cerca superior</th><th class="r">Atípicos</th><th class="r">Extremos (3×)</th><th class="r">Peso na soma</th><th>Maiores (linha)</th></tr></thead><tbody>`+A.outliers.map(o=>`<tr><td><b>${esc(o.col)}</b></td><td class="r">${num(o.f.low)}</td><td class="r">${num(o.f.high)}</td><td class="r">${nf(o.count)} de ${nf(o.n)}</td><td class="r">${nf(o.extreme)}</td><td class="r">${o.shareOfSum==null?'–':pct(o.shareOfSum)}</td><td class="muted">${o.top.map(t=>`${num(t.v)} (${t.row})`).join(', ')}</td></tr>`).join('')+`</tbody></table></div>`:'<div class="empty">Nenhum valor atípico encontrado (ou colunas com menos de 8 valores).</div>')+`</div>`;
+  return h;
+}
+function statsTable(rows){
+  return `<div class="scroll"><table><thead><tr><th>Coluna</th><th class="r">n válido</th><th class="r">Ausentes</th><th class="r">Média</th><th class="r">Mediana</th><th class="r">Desvio</th><th class="r">Mín.</th><th class="r">P25</th><th class="r">P75</th><th class="r">P90</th><th class="r">Máx.</th><th class="r">Soma</th></tr></thead><tbody>`+
+  rows.map(p=>`<tr><td><b>${esc(p.name)}</b></td><td class="r">${nf(p.n)}</td><td class="r">${nf(p.missing)}</td><td class="r">${num(p.mean)}</td><td class="r">${num(p.median)}</td><td class="r">${num(p.sd)}</td><td class="r">${num(p.min)}</td><td class="r">${num(p.p25)}</td><td class="r">${num(p.p75)}</td><td class="r">${num(p.p90)}</td><td class="r">${num(p.max)}</td><td class="r">${num(p.sum)}</td></tr>`).join('')+`</tbody></table></div>`;
+}
+function niceTicks(max,n=4){const raw=max/n,p=Math.pow(10,Math.floor(Math.log10(raw||1))),f=raw/p,s=(f<=1?1:f<=2?2:f<=5?5:10)*p;const t=[];for(let v=0;v<=max+s*.01;v+=s)t.push(v);if(t[t.length-1]<max)t.push(t[t.length-1]+s);return t}
+function histSVG(vals,name){
+  if(vals.length<5)return '<div class="empty">Valores insuficientes para o histograma.</div>';
+  const W=640,H=230,ml=44,mr=10,mt=10,mb=30,mn=Math.min(...vals),mx=Math.max(...vals);
+  if(mn===mx)return '<div class="empty">Todos os valores são iguais.</div>';
+  const k=Math.min(30,Math.max(8,Math.ceil(Math.log2(vals.length)+1))),w=(mx-mn)/k,bins=new Array(k).fill(0);
+  for(const v of vals){bins[Math.min(k-1,Math.floor((v-mn)/w))]++}
+  const ticks=niceTicks(Math.max(...bins)),ymax=ticks[ticks.length-1],iw=W-ml-mr,ih=H-mt-mb,bw=iw/k;
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Histograma de ${esc(name)}">`;
+  for(const t of ticks){const y=mt+ih-t/ymax*ih;s+=`<line class="grid" x1="${ml}" x2="${W-mr}" y1="${y}" y2="${y}"/><text x="${ml-6}" y="${y+4}" text-anchor="end">${nf(t)}</text>`}
+  bins.forEach((c,i)=>{const h=c/ymax*ih,x=ml+i*bw;s+=`<rect x="${x+1}" y="${mt+ih-h}" width="${Math.max(1,bw-2)}" height="${h}" rx="2" fill="${COL.cyan}" data-tip="${num(mn+i*w)} a ${num(mn+(i+1)*w)}: ${nf(c)} linhas"/>`});
+  s+=`<line class="axis" x1="${ml}" x2="${W-mr}" y1="${mt+ih}" y2="${mt+ih}"/>`;
+  for(let i=0;i<=4;i++){const x=ml+iw*i/4;s+=`<text x="${x}" y="${H-8}" text-anchor="${i===0?'start':i===4?'end':'middle'}">${num(mn+(mx-mn)*i/4)}</text>`}
+  return s+'</svg>';
+}
+function timeSVG(T,name){
+  const P=T.periods,W=700,H=250,ml=52,mr=10,mt=12,mb=34,iw=W-ml-mr,ih=H-mt-mb,bw=iw/P.length;
+  const ticks=niceTicks(Math.max(...P.map(p=>p.sum),1)),ymax=ticks[ticks.length-1];
+  const lab=p=>{const d=new Date(p.start);const mo=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getUTCMonth()];return T.gran==='mês'?mo+'/'+String(d.getUTCFullYear()).slice(2):String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0')};
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(name)} por ${T.gran}">`;
+  for(const t of ticks){const y=mt+ih-t/ymax*ih;s+=`<line class="grid" x1="${ml}" x2="${W-mr}" y1="${y}" y2="${y}"/><text x="${ml-6}" y="${y+4}" text-anchor="end">${num(t)}</text>`}
+  P.forEach((p,i)=>{const h=p.sum/ymax*ih,x=ml+i*bw;
+    s+=`<rect x="${x+1.5}" y="${mt+ih-h}" width="${Math.max(1,bw-3)}" height="${h}" rx="2" fill="${p.partial?'none':COL.cyan}" ${p.partial?`stroke="${COL.cyan}" stroke-dasharray="3 3"`:''} data-tip="${lab(p)}: soma ${num(p.sum)} · ${nf(p.n)} registros${p.partial?' · período parcial (fora da tendência)':''}"/>`});
+  const stepL=Math.ceil(P.length/10);P.forEach((p,i)=>{if(i%stepL===0)s+=`<text x="${ml+i*bw+bw/2}" y="${H-12}" text-anchor="middle">${lab(p)}</text>`});
+  if(T.fit){const off=P.findIndex(p=>!p.partial);const full=P.filter(p=>!p.partial);const y0=T.fit.intercept,y1=T.fit.intercept+T.fit.slope*(full.length-1);
+    const xa=ml+off*bw+bw/2,xb=ml+(off+full.length-1)*bw+bw/2,ya=mt+ih-Math.max(0,y0)/ymax*ih,yb=mt+ih-Math.max(0,y1)/ymax*ih;
+    s+=`<line x1="${xa}" y1="${ya}" x2="${xb}" y2="${yb}" stroke="${COL.amber}" stroke-width="2" stroke-linecap="round"/><circle cx="${xb}" cy="${yb}" r="4" fill="${COL.amber}" stroke="#222831" stroke-width="2"/>`}
+  s+=`<line class="axis" x1="${ml}" x2="${W-mr}" y1="${mt+ih}" y2="${mt+ih}"/></svg>`;
+  return s;
+}
+function vMetricas(){
+  const A=S.A,m=A.metric;let h='';
+  h+=`<div class="panel stack"><h2>Amostra utilizada</h2><div class="flow">
+   <div class="st"><span>Linhas lidas</span><b>${nf(A.pre.rawN)}</b></div>
+   <div class="st"><span>− linhas vazias (filtros)</span><b>${nf(A.pre.filterRemoved)}</b></div>
+   <div class="st"><span>− duplicatas ${A.dup.removed?'(removidas)':'(mantidas)'}</span><b>${A.dup.removed?nf(A.dup.extra):'0'}</b></div>
+   <div class="st"><span>= base após limpeza</span><b>${nf(A.base.length)}</b></div>
+   ${m?`<div class="st"><span>− sem valor em ${esc(m.name)}</span><b>${nf(m.missingInBase)}</b></div><div class="st"><span>− atípicos ${A.cfg.excludeOut?'(excluídos)':'(mantidos)'}</span><b>${A.cfg.excludeOut?nf(m.nOut):'0'}</b></div><div class="st fin"><span>= linhas usadas na métrica</span><b>${nf(A.nUsed)}</b></div>`:''}
+  </div>${A.dup.extra&&!A.dup.removed?`<div class="note" style="margin-top:6px">${nf(A.dup.extra)} duplicatas idênticas continuam na base (exclusão desligada).</div>`:''}<p class="sub">As estatísticas por coluna ignoram só os valores ausentes daquela coluna. Colunas de identificador, texto livre e vazias não entram.</p></div>`;
+  if(m){
+    h+=`<div class="panel stack" style="margin-top:14px"><h2>${esc(m.name)}: com e sem valores atípicos</h2>`+
+     statsTable([{name:'Todos os valores',...m.all,missing:m.missingInBase},{name:m.f?'Sem atípicos':'Sem atípicos (não aplicável)',...(m.f?m.clean:m.all),missing:m.missingInBase}])+
+     `<h3 style="margin-top:6px">Distribuição${m.nOut?' (valores dentro das cercas; atípicos fora do gráfico)':''}</h3>${histSVG(m.inliers,m.name)}</div>`;
+  } else h+=`<div class="panel empty" style="margin-top:14px">Nenhuma coluna numérica selecionada como métrica.</div>`;
+  if(A.trend){
+    const T=A.trend;
+    h+=`<div class="panel stack" style="margin-top:14px"><div><h2>${esc(m.name)} por ${T.gran}</h2><p class="sub">Soma da métrica por período. ${T.nPartial?`Barras tracejadas são períodos parciais e ficam fora da tendência. `:''}${T.future?`${nf(T.future)} registros com data futura ignorados. `:''}Base: ${nf(T.nPts)} registros com data e métrica válidas.</p></div>${timeSVG(T,m.name)}
+     <div class="legend"><span><i style="background:${COL.cyan}"></i>Soma por ${T.gran}</span>${T.fit?`<span><i style="background:${COL.amber}"></i>Reta de tendência (descritiva)</span>`:''}</div>
+     ${T.fit?`<div class="kv"><div><span>Períodos completos</span><b>${T.nFull}</b></div><div><span>Inclinação por ${T.gran}</span><b>${T.fit.slope>=0?'+':''}${num(T.fit.slope)}</b></div><div><span>r (IC95%)</span><b>${nf(T.fit.r,2)}${T.fit.ci?` (${nf(T.fit.ci[0],2)} a ${nf(T.fit.ci[1],2)})`:''}</b></div></div>`:`<div class="note">Menos de 6 períodos completos: tendência não calculada.</div>`}</div>`;
+  } else if(S.dateName&&m) h+=`<div class="panel" style="margin-top:14px"><div class="note">A série temporal não foi calculada: é preciso ao menos 10 registros com data válida e métrica.</div></div>`;
+  for(const g of A.groups){
+    const mx=Math.max(...g.list.map(x=>Math.abs(x.mean)),1);
+    h+=`<div class="panel stack" style="margin-top:14px"><div><h2>${esc(m.name)} por ${esc(g.dim)}</h2><p class="sub">Grafias que diferem só em caixa, acento ou espaço foram agrupadas. ${g.lost?`${nf(g.lost)} linhas sem valor em "${esc(g.dim)}" ficaram de fora. `:''}Grupos com n &lt; 10 não têm intervalo de confiança.</p></div><div class="scroll"><table><thead><tr><th>Grupo</th><th class="r">n</th><th>Média</th><th class="r">Mediana</th><th class="r">Soma</th><th class="r">% da soma</th><th class="r">IC95% da média</th></tr></thead><tbody>`+
+     g.list.map(x=>`<tr><td><b>${esc(x.label)}</b>${x.n<10?' <span class="pill p-baixa">amostra pequena</span>':''}</td><td class="r">${nf(x.n)}</td><td style="min-width:150px"><div class="hb" style="grid-template-columns:1fr auto"><div class="bar" data-tip="${esc(x.label)}: média ${num(x.mean)}"><span style="width:${Math.max(0,x.mean/mx*100)}%"></span></div><span class="num">${num(x.mean)}</span></div></td><td class="r">${num(x.median)}</td><td class="r">${num(x.sum)}</td><td class="r">${x.share==null?'–':pct(x.share)}</td><td class="r">${x.ci?num(x.ci[0])+' a '+num(x.ci[1]):'–'}</td></tr>`).join('')+`</tbody></table></div></div>`;
+  }
+  if(A.numProfile.length)h+=`<div class="panel stack" style="margin-top:14px"><h2>Todas as colunas numéricas</h2>${statsTable(A.numProfile)}</div>`;
+  if(A.catProfile.length)h+=`<div class="panel stack" style="margin-top:14px"><h2>Colunas categóricas: valores mais frequentes</h2><div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">`+A.catProfile.map(c=>`<div class="stack"><h3>${esc(c.name)} <span class="faint" style="font-weight:500">· ${nf(c.distinct)} categorias · n=${nf(c.n)}</span></h3><div class="hbars">${c.top.map(t=>`<div class="hb"><span class="lb" title="${esc(t.label)}">${esc(t.label)}</span><div class="bar" data-tip="${esc(t.label)}: ${nf(t.n)} linhas (${pct(t.share)})"><span style="width:${t.share*100}%;background:${COL.violet}"></span></div><span class="num">${pct(t.share,0)}</span></div>`).join('')}</div></div>`).join('')+`</div></div>`;
+  return h;
+}
+function heatColor(r){const a=Math.min(1,Math.abs(r))*.75;return r>=0?`rgba(85,199,232,${a})`:`rgba(255,190,69,${a})`}
+function vRelacoes(){
+  const C=S.A.corr;
+  let h=`<div class="note" style="margin-bottom:14px"><b>Correlação não é causalidade.</b> Os valores abaixo medem se duas colunas variam juntas nestas linhas. Eles não dizem qual causa a outra, nem se uma delas é calculada a partir da outra.</div>`;
+  if(!C)return h+'<div class="panel empty">São necessárias ao menos 2 colunas numéricas com 10 ou mais valores e variação.</div>';
+  const n=C.names.length;
+  h+=`<div class="panel stack"><div><h2>Matriz de correlação (Spearman)</h2><p class="sub">Spearman usa postos e é menos sensível a atípicos. Cada par usa só as linhas com os dois valores (n por par na tabela abaixo). Cyan: positiva. Âmbar: negativa.</p></div><div class="scroll"><div class="heat" style="grid-template-columns:auto repeat(${n},1fr)"><div></div>${C.names.map(x=>`<div class="h">${esc(x)}</div>`).join('')}`+
+   C.names.map((a,i)=>`<div class="rl">${esc(a)}</div>`+C.names.map((b,j)=>i===j?`<div class="c" style="background:var(--panel-2);color:var(--fg-3)">–</div>`:C.M[i][j]?`<div class="c" style="background:${heatColor(C.M[i][j].rs)}" data-tip="${esc(a)} × ${esc(b)}: Spearman ${nf(C.M[i][j].rs,2)} · Pearson ${nf(C.M[i][j].r,2)} · n=${nf(C.M[i][j].n)}">${nf(C.M[i][j].rs,2)}</div>`:`<div class="c faint">n/d</div>`).join('')).join('')+`</div></div></div>`;
+  h+=`<div class="panel" style="margin-top:14px"><h2 style="margin-bottom:8px">Pares ordenados por |Spearman|</h2><div class="scroll"><table><thead><tr><th>Par</th><th class="r">n</th><th class="r">Pearson</th><th class="r">IC95% (Pearson)</th><th class="r">Spearman</th><th>Leitura</th></tr></thead><tbody>`+
+   C.pairs.slice(0,15).map(p=>{const strong=Math.abs(p.rs)>=.5&&Math.abs(p.r)>=.5&&p.n>=30;const incl=p.ci&&p.ci[0]<=0&&p.ci[1]>=0;return `<tr><td><b>${esc(p.a)}</b> × <b>${esc(p.b)}</b></td><td class="r">${nf(p.n)}</td><td class="r">${nf(p.r,2)}</td><td class="r">${p.ci?nf(p.ci[0],2)+' a '+nf(p.ci[1],2):'–'}</td><td class="r">${nf(p.rs,2)}</td><td class="muted">${Math.abs(p.r-p.rs)>.3?'Pearson e Spearman divergem: atípicos ou relação não linear':strong?'associação forte nestes dados':incl?'indistinguível de zero':Math.abs(p.rs)>=.3?'associação moderada':'associação fraca'}</td></tr>`}).join('')+`</tbody></table></div></div>`;
+  return h;
+}
+function vLimites(){
+  const L=I.limitations(S.D,S.A);
+  return `<div class="panel stack"><div><h2>Limitações e exclusões</h2><p class="sub">Lista gerada a partir do que foi de fato calculado nesta execução.</p></div><ul class="clean">${li(L)}</ul>${S.notes.length?`<p class="sub">${esc(S.notes.join(' · '))}</p>`:''}</div>`;
+}
+const HEX=/^#[0-9a-f]{6}$/i;
+const SW=[['Cyan','#55C7E8'],['Esmeralda','#35C995'],['Âmbar','#FFBE45'],['Violeta','#7278F5']];
+function rgba(hex,a){const n=parseInt(hex.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`}
+function rowAttr(rn){const c=S.rowColors.get(rn);return c?`style="background:${rgba(c,.17)};box-shadow:inset 3px 0 0 ${c}"`:''}
+function dotAttr(rn){const c=S.rowColors.get(rn);return c?`class="dot set" style="background:${c}"`:'class="dot"'}
+function csvOf(D){const q=v=>{const t=v==null?'':String(v);return /[;"\n\r]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t};
+  return [D.cols.map(c=>q(c.name)).join(';'),...Array.from({length:D.nRows},(_,i)=>D.cols.map(c=>q(c.raw[i])).join(';'))].join('\n')}
+function vDados(){
+  const D=S.D,A=S.A,pre=A.pre,lim=Math.min(S.dataLimit,D.nRows);
+  const rm=[];if(A.dup.removed)rm.push(`${nf(A.dup.extra)} duplicatas`);if(pre.filterRemoved)rm.push(`${nf(pre.filterRemoved)} linhas vazias`);
+  let h=`<div class="panel stack"><div><h2>Dados após a limpeza</h2><p class="sub">${nf(D.nRows)} linhas e ${D.cols.length} colunas (lidas: ${nf(pre.rawN)}${rm.length?'; removidas: '+rm.join(', '):''}${pre.dropped.length?'; colunas excluídas: '+esc(pre.dropped.join(', ')):''}). O número à esquerda é a linha do arquivo original. ∅ marca valor ausente. Clique no círculo de uma linha para escolher a cor dela.</p></div>
+  <div class="tools"><span class="sub" style="margin:0">Cor das ${nf(lim)} linhas exibidas:</span>${SW.map(([n,c])=>`<button type="button" class="swatch" data-bulk="${c}" style="background:${c}" aria-label="Aplicar ${n} às linhas exibidas" data-tip="${n}"></button>`).join('')}<button type="button" class="swatch def" data-bulk="" aria-label="Voltar as linhas exibidas à cor padrão" data-tip="Cor padrão"></button><button type="button" class="btn" data-clearcolors>Redefinir todas as cores</button><button type="button" class="btn" data-copycsv>Copiar dados limpos (CSV)</button></div>
+  <div class="scroll" style="max-height:560px;overflow:auto"><table><thead><tr><th>Cor</th><th class="r">#</th>${D.cols.map(c=>`<th>${esc(c.name)}</th>`).join('')}</tr></thead><tbody>`;
+  for(let i=0;i<lim;i++){const rn=D.rowNo[i];
+    h+=`<tr data-rn="${rn}" ${rowAttr(rn)}><td class="ctl"><button type="button" ${dotAttr(rn)} data-pick="${rn}" aria-label="Escolher cor da linha ${rn}"></button></td><td class="r faint">${rn}${A.dupNos.has(rn)?' <span class="pill p-baixa">duplicada</span>':''}</td>${D.cols.map(c=>{const v=c.raw[i];const miss=E.isMissing(v);return `<td ${miss?'class="faint"':''}>${miss?'∅':esc(v)}</td>`}).join('')}</tr>`}
+  h+=`</tbody></table></div>${lim<D.nRows?`<div class="btns"><button type="button" class="btn" data-more>Mostrar mais ${Math.min(100,D.nRows-lim)} linhas</button><span class="sub" style="align-self:center;margin:0">Exibindo ${nf(lim)} de ${nf(D.nRows)}</span></div>`:''}</div>`;
+  return h;
+}
+function setRowColor(rn,hex){
+  if(hex&&HEX.test(hex))S.rowColors.set(rn,hex);else{S.rowColors.delete(rn);hex=''}
+  const tr=$('view').querySelector(`tr[data-rn="${rn}"]`);if(!tr)return;
+  if(hex)tr.setAttribute('style',`background:${rgba(hex,.17)};box-shadow:inset 3px 0 0 ${hex}`);else tr.removeAttribute('style');
+  const d=tr.querySelector('.dot');if(d){d.className=hex?'dot set':'dot';d.style.background=hex||''}
+}
+
+/* ---------- eventos ---------- */
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;S.tab=b.dataset.tab;renderTabs();renderView()});
+$('tabs').addEventListener('keydown',e=>{if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;const ks=TABS.map(t=>t[0]),i=ks.indexOf(S.tab),j=(i+(e.key==='ArrowRight'?1:-1)+ks.length)%ks.length;S.tab=ks[j];renderTabs();renderView();$('tab-'+S.tab).focus()});
+const drop=$('drop');
+drop.addEventListener('click',()=>$('file').click());
+drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('file').click()}});
+['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)readFile(f)});
+$('file').addEventListener('change',e=>{const f=e.target.files[0];if(f)readFile(f);e.target.value=''});
+$('sheetSel').addEventListener('change',e=>loadSheet(e.target.value));
+$('sampleBtn').addEventListener('click',loadSample);
+$('pasteBtn').addEventListener('click',()=>{const t=$('pasteArea').value;if(!t.trim()){showMsg('Cole os dados com cabeçalho antes de analisar.');return}const p=E.parseCSV(t);loadMatrix(p.rows,'dados colados',false,[])});
+['ctx','metricSel','dateSel','exDup','exOut'].forEach(id=>$(id).addEventListener('change',()=>{
+  if(!S.D)return;
+  if(id==='metricSel')S.metricName=$('metricSel').value;
+  if(id==='dateSel')S.dateName=$('dateSel').value;
+  run();
+}));
+$('objective').addEventListener('input',()=>{if(S.D&&S.tab==='insights')renderView()});
+async function copyOrShow(text,title,btn){
+  const old=btn.textContent;
+  try{await navigator.clipboard.writeText(text);btn.textContent='Copiado';setTimeout(()=>{btn.textContent=old},1800);const x=document.getElementById('rep');if(x)x.remove()}
+  catch(e){let x=document.getElementById('rep');if(!x){x=document.createElement('div');x.id='rep';x.className='panel report-box';$('view').before(x)}
+    x.innerHTML=`<h3>${esc(title)}</h3><p class="sub">Seu navegador bloqueou a cópia automática. Selecione o texto abaixo e copie.</p><textarea id="repTa" style="min-height:220px" readonly></textarea>`;
+    const ta=$('repTa');ta.value=text;ta.focus();ta.select()}
+}
+$('copyBtn').addEventListener('click',()=>{
+  if(!S.A)return;
+  copyOrShow(I.reportText(S.D,S.A,S.items,{fileName:S.fileName,isSample:S.isSample,objective:$('objective').value.trim()}),'Relatório em texto',$('copyBtn'));
+});
+/* filtros */
+$('fAdd').addEventListener('click',addRule);
+$('fCol').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addRule()}});
+$('fList').addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(!b)return;S.rules.splice(+b.dataset.rm,1);setFMsg('');run()});
+/* cores por linha */
+const pop=$('pop');
+function openPop(btn,rn){
+  S.popRow=rn;S.popAt=performance.now();pop.hidden=false;$('customColor').value=S.rowColors.get(rn)||'#55C7E8';
+  const r=btn.getBoundingClientRect(),w=pop.offsetWidth,h=pop.offsetHeight;
+  pop.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';
+  pop.style.top=(r.bottom+8+h>innerHeight?Math.max(8,r.top-h-8):r.bottom+8)+'px';
+  pop.querySelector('[data-c]').focus({preventScroll:true});
+}
+function closePop(){pop.hidden=true;S.popRow=null}
+pop.addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b||S.popRow==null)return;setRowColor(S.popRow,b.dataset.c);closePop()});
+$('customColor').addEventListener('input',e=>{if(S.popRow!=null)setRowColor(S.popRow,e.target.value)});
+document.addEventListener('click',e=>{if(!pop.hidden&&!e.target.closest('#pop')&&!e.target.closest('[data-pick]'))closePop()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden)closePop()});
+window.addEventListener('scroll',()=>{if(!pop.hidden&&performance.now()-S.popAt>400)closePop()},{passive:true});
+$('view').addEventListener('click',e=>{
+  const pk=e.target.closest('[data-pick]');if(pk){openPop(pk,+pk.dataset.pick);return}
+  const bk=e.target.closest('[data-bulk]');
+  if(bk){const lim=Math.min(S.dataLimit,S.D.nRows);for(const rn of S.D.rowNo.slice(0,lim))setRowColor(rn,bk.dataset.bulk);return}
+  if(e.target.closest('[data-clearcolors]')){S.rowColors.clear();renderView();return}
+  if(e.target.closest('[data-more]')){S.dataLimit+=100;renderView();return}
+  const cp=e.target.closest('[data-copycsv]');if(cp)copyOrShow(csvOf(S.D),'Dados limpos em CSV (separador ;)',cp);
+});
+const tip=$('tip');
+document.addEventListener('mouseover',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(!t){tip.classList.remove('on');return}tip.textContent=t.getAttribute('data-tip');tip.classList.add('on')});
+document.addEventListener('mousemove',e=>{if(!tip.classList.contains('on'))return;const w=tip.offsetWidth,x=Math.min(e.clientX+14,innerWidth-w-8);tip.style.left=Math.max(8,x)+'px';tip.style.top=(e.clientY+16)+'px'});
+
+$('ctx').innerHTML=Object.entries(I.CTX).map(([k,v])=>`<option value="${k}">${esc(v.nome)}</option>`).join('');
+$('metricSel').innerHTML='<option value="">Importe uma base primeiro</option>';
+$('dateSel').innerHTML='<option value="">Importe uma base primeiro</option>';
+$('importBtn').addEventListener('click',()=>{$('sourceSettings').open=true;$('importSection').scrollIntoView({behavior:'smooth',block:'start'});$('drop').focus({preventScroll:true})});
+$('demoLogin').addEventListener('submit',e=>{e.preventDefault();$('loginScreen').hidden=true;$('appShell').hidden=false;$('pageTitle').focus();});
+$('logoutBtn').addEventListener('click',()=>location.reload());
+document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{
+  if(!S.A){$('sourceSettings').open=true;$('importSection').scrollIntoView({behavior:'smooth',block:'start'});$('drop').focus({preventScroll:true});showMsg('Importe sua base ou carregue o exemplo sintético para explorar esta área.');return}
+  S.tab=b.dataset.nav;renderTabs();renderView();$('tabs').scrollIntoView({behavior:'smooth',block:'start'});
+}));
+})();
+</script>
+</body>
+</html>
