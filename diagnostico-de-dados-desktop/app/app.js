@@ -8,16 +8,17 @@ const S={headers:null,rows:null,ragged:0,fileName:'',isSample:false,D:null,A:nul
 
 /* ---------- leitura de arquivos ---------- */
 let worker=null, cancelWork=null;
+let disposeWorker=()=>{};
 async function work(data){
   if(worker)throw new Error('Aguarde a operação atual.');
   $('busy').hidden=false;$('appShell').inert=true;
   try{return await new Promise((resolve,reject)=>{
-    worker=new Worker('analysis-worker.js');
+    const runtime=WorkerRuntime.create();worker=runtime.worker;disposeWorker=runtime.dispose;
     cancelWork=()=>reject(new Error('Operação cancelada. Sua base anterior foi preservada.'));
     worker.onmessage=e=>e.data.error?reject(new Error(e.data.error)):resolve(e.data.result);
-    worker.onerror=()=>reject(new Error('Não foi possível iniciar o processamento local. No navegador, abra o aplicativo por um servidor local; no desktop, execute npm start.'));
+    worker.onerror=()=>reject(new Error('Não foi possível iniciar o processamento local. Extraia todo o ZIP atualizado e tente novamente. A análise anterior foi preservada.'));
     worker.postMessage(data);
-  })}finally{if(worker)worker.terminate();worker=null;cancelWork=null;$('busy').hidden=true;$('appShell').inert=false}
+  })}finally{if(worker)worker.terminate();disposeWorker();disposeWorker=()=>{};worker=null;cancelWork=null;$('busy').hidden=true;$('appShell').inert=false}
 }
 function previewTable(headers,rows,rowNos){
  return `<div class="scroll preview-table"><table><thead><tr><th>Linha</th>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.slice(0,10).map((r,i)=>`<tr><td>${rowNos?rowNos[i]:i+2}</td>${headers.map((_,j)=>`<td>${esc(r[j]??'∅')}</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="sub">Prévia de até 10 registros. O arquivo original não é alterado.</p>`;

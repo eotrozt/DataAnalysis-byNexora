@@ -14,7 +14,7 @@ Acesso direto, sem login. O original é preservado; duplicatas e atípicos não 
 
 ## Download
 
-[Baixar projeto ZIP](downloads/nexora-insight.zip) — abra o arquivo e clique em **Download raw**. O ZIP inclui os recursos locais de fonte e Excel. Para a análise, execute `npm ci && npm start` ou sirva `app/` por um servidor local, conforme o guia.
+[Baixar projeto ZIP](downloads/nexora-insight-1.1.1.zip) — abra o arquivo e clique em **Download raw**. O ZIP inclui os recursos locais de fonte e Excel. Na versão 1.1.1, extraia todo o ZIP e abra `app/index.html` diretamente no navegador. Não é necessário instalar Node.js para esse modo. Para o aplicativo Electron, siga os comandos acima.
 
 ## Visão Geral
 

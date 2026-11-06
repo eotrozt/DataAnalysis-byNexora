@@ -1,4 +1,4 @@
-# Nexora Insight 1.1
+# Nexora Insight 1.1.1
 
 Aplicativo desktop de análise local de CSV, TSV, TXT e Excel. A fonte Manrope, o leitor de Excel e todo o processamento ficam no dispositivo. Não há tela de login nem serviços externos de análise.
 
@@ -17,7 +17,7 @@ Para desenvolvimento no navegador, após `npm ci`, sirva a pasta `app/`:
 python3 -m http.server 4173 --directory app --bind 127.0.0.1
 ```
 
-Use o servidor local para permitir os Web Workers; abrir o HTML diretamente por `file://` pode ser bloqueado pelo navegador. O Electron abre os arquivos locais normalmente.
+O ZIP de distribuição também permite abrir `app/index.html` diretamente por duplo clique, sem Node.js ou servidor. Desde a versão 1.1.1, essa abertura usa um Web Worker autocontido, compatível com a origem local do navegador. Extraia todo o ZIP e mantenha `app/worker-source.js` junto dos demais arquivos. No checkout Git, `npm ci` gera esse recurso automaticamente. Não é necessário desativar proteções do navegador.
 
 ## Fluxo de análise
 
@@ -62,6 +62,7 @@ Leitura de Excel/CSV, análise e geração de Excel acontecem em Web Worker com 
 npx playwright install chromium
 npm test
 npm run test:desktop
+npm run test:file
 ```
 
 `CHROMIUM_PATH` seleciona um Chromium já instalado; `/usr/bin/chromium` é detectado no Linux. `SCREENSHOT_DIR=/pasta npm test` salva capturas. O teste desktop usa o Electron instalado e, no Linux, Ozone em modo headless. Ele substitui apenas o diálogo de destino para verificar a geração real de PDF via preload e IPC. A seleção manual de destino e instaladores Windows/macOS devem ser conferidos nos sistemas correspondentes.
@@ -71,6 +72,7 @@ npm run test:desktop
 - `app/engine.js`: tipos, estatística e preparação de dados.
 - `app/processor.js`: validações, pipeline e comparação entre versões.
 - `app/analysis-worker.js`: execução fora da interface.
+- `app/worker-runtime.js`, `scripts/build-worker.js`: empacotamento local para abertura direta por `file://`; `worker-source.js` é gerado na instalação e incluído no ZIP.
 - `app/insights.js`: evidências, recomendações por contexto e limitações.
 - `app/charts.js`: histogramas e séries temporais.
 - `app/reports.js`: estrutura de relatórios e exportação.
@@ -80,7 +82,7 @@ npm run test:desktop
 
 ## Migração e distribuição
 
-O pacote passou a se chamar `nexora-insight` (1.1.0), e o nome visível é Nexora Insight. O diretório legado `diagnostico-de-dados-desktop/` e o identificador de aplicativo `com.diagnosticodedados.app` foram conservados para não quebrar caminhos e identidade de instalação existentes.
+O pacote passou a se chamar `nexora-insight` (1.1.1), e o nome visível é Nexora Insight. O diretório legado `diagnostico-de-dados-desktop/` e o identificador de aplicativo `com.diagnosticodedados.app` foram conservados para não quebrar caminhos e identidade de instalação existentes.
 
 ```sh
 npm run dist

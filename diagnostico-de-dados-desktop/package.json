@@ -1,7 +1,7 @@
 {
   "name": "nexora-insight",
   "productName": "Nexora Insight",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Análise de dados com checagem de qualidade, métricas reais e insights com evidência. Funciona offline.",
   "main": "main.js",
   "author": "Nexora",
@@ -14,8 +14,11 @@
     "dist:win": "node scripts/vendor.js && electron-builder --win --publish never",
     "dist:mac": "node scripts/vendor.js && electron-builder --mac --publish never",
     "dist:linux": "node scripts/vendor.js && electron-builder --linux --publish never",
-    "test": "node --test tests/engine.test.cjs && node tests/smoke.cjs",
-    "test:desktop": "node tests/desktop.cjs"
+    "test": "node --test tests/engine.test.cjs && node tests/smoke.cjs && node tests/file.cjs",
+    "test:desktop": "node tests/desktop.cjs",
+    "pretest": "node scripts/vendor.js",
+    "test:file": "node tests/file.cjs",
+    "pretest:file": "node scripts/vendor.js"
   },
   "dependencies": {
     "@fontsource/manrope": "^5.1.0",

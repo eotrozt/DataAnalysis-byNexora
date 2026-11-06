@@ -40,3 +40,13 @@
 - Histórico e sessão ficam em memória; recarregar ou fechar descarta o estado. Exporte antes de encerrar.
 - PDF do navegador usa a impressão do próprio navegador; o Electron salva diretamente após escolha do destino.
 - O diretório legado e o appId permanecem por compatibilidade, apesar da padronização do nome do pacote.
+
+## Correção 1.1.1 — importação na abertura direta
+
+Corrigido o erro de origem `null` ao criar o Worker a partir de `file://`. O ZIP agora contém um worker autocontido, iniciado por URL Blob, sem importações de outros arquivos locais no worker. A segurança do navegador e a proibição de acesso a serviços externos são mantidas. A instalação gera o pacote automaticamente, e o gerador usa apenas fontes locais do aplicativo e da dependência Excel.
+
+Teste de regressão `tests/file.cjs`: abertura real por `file://` em janela Electron sem preload/ponte desktop, importação CSV, análise, correção de duplicatas, geração e leitura dos bytes de Excel e importação XLSX. Confirmado que todos esses trabalhos usam Workers Blob. O salvamento do arquivo Excel é substituído por captura dos bytes nesse teste; o download efetivo continua coberto pelo teste de interface HTTP. Não foi executado no Windows. O Chromium gerenciado deste ambiente bloqueia navegação direta a `file://`, por isso o caminho local sem ponte foi validado no Electron, sem alterar políticas do navegador.
+
+`npm test` inclui esse teste de regressão, além dos 12 testes do motor e do fluxo de interface. `npm run test:desktop` verifica separadamente o caminho nativo com preload e PDF.
+
+O ZIP 1.1.1 foi extraído em uma pasta com espaços e parênteses no nome; o mesmo teste de abertura local passou usando os arquivos extraídos, incluindo CSV, Excel, correção e geração de Excel.

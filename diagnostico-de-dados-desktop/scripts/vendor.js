@@ -39,3 +39,5 @@ for (const w of weights) {
 fs.writeFileSync(path.join(out, 'fonts.css'), css);
 if (found) console.log(`vendor: ${found} pesos da fonte Manrope copiados`);
 else console.warn('vendor: AVISO: fonte Manrope não encontrada. O app usa a fonte padrão do sistema.');
+
+require('./build-worker.js');
